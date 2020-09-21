@@ -1,10 +1,12 @@
 from flask import Flask, json, render_template
 import os
+from lib.Api import Api
 from lib.Config import Config
 from lib.Key import Key
 from lib.Test import Test
 
 config = Config()
+api = Api()
 
 app = Flask(__name__)
 app.config.update(
@@ -12,16 +14,20 @@ app.config.update(
 )
 
 @app.route('/', methods=['GET'])
+@api.message
 def index():
   r = Test()
   
   return r.get_body()
 
+
 @app.route('/config', methods=['GET'])
-def config():
-  return str(config.get())
+@api.message
+def config_page():
+  return config.get()
 
 @app.route('/device/add/<string:zone>/<string:type>', methods=['GET'])
+@api.message
 def add_device(zone, type):
   device = {
     "zone": zone,
