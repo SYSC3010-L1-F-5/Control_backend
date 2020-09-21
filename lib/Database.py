@@ -68,7 +68,7 @@ class Database:
         """
         if self.path is None and path is None:
             return False
-        else if path is None:
+        elif path is None:
             self.connection = sqlite3.connect(self.path)
         else:
             self.connection = sqlite3.connect(path)
