@@ -2,3 +2,5 @@ users:
   admin: password
   root: root
  
+plugins:
+  SenseHAT: true
