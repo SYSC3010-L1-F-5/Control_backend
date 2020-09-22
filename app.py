@@ -9,7 +9,6 @@ from route.index import Index
 from route.user import User
 
 app = Flask(__name__)
-config = Config()
 api = Api(app)
 
 api.add_resource(Index, '/')

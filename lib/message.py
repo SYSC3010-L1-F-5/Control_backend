@@ -17,6 +17,12 @@ class Message:
 
     def __init__(self):
         self.app = None
+        self.messages = {
+            "200": "HTTP 200 OK",
+            "401": "HTTP Unauthorized",
+            "404": "HTTP Not Found",
+            "500": "Internal Server Error"
+        }
 
     def response(self, func):
         """
@@ -29,12 +35,15 @@ class Message:
         """
         @wraps(func)
         def wrapper(*args, **kwargs):
-            original, status_code = func(*args, **kwargs)
+            original, status_code = func(*args, **kwargs) or None, 500
             result = {
-                "message": original,
+                "message": self.message(status_code, original),
                 "status_code": status_code,
-                "error": "",
                 "time": int(time.time() * 1000)
             }
-            return result
+            return result, status_code
         return wrapper
+
+    def message(self, code, message=None):
+        return message or self.messages[str(code)]
+            
