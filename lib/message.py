@@ -10,16 +10,15 @@
     50x: Internal Server Error
 
 """
-from flask import jsonify
 from functools import wraps
 import time
 
-class Api:
+class Message:
 
     def __init__(self):
         self.app = None
 
-    def message(self, func):
+    def response(self, func):
         """
         
             Changes the message to fit the structure
@@ -30,30 +29,12 @@ class Api:
         """
         @wraps(func)
         def wrapper(*args, **kwargs):
-            original = func(*args, **kwargs)
+            original, status_code = func(*args, **kwargs)
             result = {
                 "message": original,
-                "status_code": 200,
+                "status_code": status_code,
                 "error": "",
                 "time": int(time.time() * 1000)
             }
-            return jsonify(result)
-        return wrapper
-
-    def logger(self, func):
-        """
-        
-            A logger to log events
-
-            Todos:
-                - finish design
-                - add runtime arguments
-                - database operations
-        
-        """
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            result = func(*args, **kwargs)
-
             return result
         return wrapper
