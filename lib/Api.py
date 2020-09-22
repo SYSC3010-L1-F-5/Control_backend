@@ -4,15 +4,20 @@
     logging, error and other devices
     Author: Haoyu Xu
 
-"""
+    200: HTTP OK
+    401: HTTP Unauthorized
+    404: HTTP Not Found
+    50x: Internal Server Error
 
+"""
+from flask import jsonify
 from functools import wraps
 import time
 
-class Api():
+class Api:
 
     def __init__(self):
-        self.debug = False
+        self.app = None
 
     def message(self, func):
         """
@@ -27,11 +32,12 @@ class Api():
         def wrapper(*args, **kwargs):
             original = func(*args, **kwargs)
             result = {
-                "body": original,
+                "message": original,
                 "status_code": 200,
+                "error": "",
                 "time": int(time.time() * 1000)
             }
-            return str(result)
+            return jsonify(result)
         return wrapper
 
     def logger(self, func):

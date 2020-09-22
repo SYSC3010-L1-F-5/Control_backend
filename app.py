@@ -1,16 +1,20 @@
-from flask import Flask, json, render_template
+from flask import Flask, jsonify
 import os
 from lib.Api import Api
 from lib.Config import Config
 from lib.Key import Key
 
+app = Flask(__name__)
 config = Config()
 api = Api()
 
-app = Flask(__name__)
 app.config.update(
     SECRET_KEY = os.urandom(16)
 )
+
+@app.errorhandler(404)
+def resource_not_found(e):
+    return jsonify(error=str(e)), 404
 
 @app.route('/', methods=['GET'])
 @api.message
@@ -22,12 +26,13 @@ def index():
 def config_page():
     return config.get()
 
-@app.route('/device/add/<string:zone>/<string:type>', methods=['GET'])
+@app.route('/device/add/<string:zone>/<string:type>/<string:name>', methods=['GET'])
 @api.message
-def add_device(zone, type):
+def add_device(zone, type, name):
     device = {
         "zone": zone,
-        "type": type
+        "type": type,
+        "name": name
     }
     key = Key()
     if key.add(device) is True:
