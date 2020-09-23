@@ -6,18 +6,15 @@
 """
 
 from flask_restful import Resource
-from lib.message import Message
-import os
-import pathlib
-import yaml
+from lib.configs import Configs
 
+from lib.message import Message
 message = Message()
 
 class Config(Resource):
 
     def __init__(self):
-        self.path = os.path.join(pathlib.Path(__file__).parent.absolute(), "..", "config.yml")
-        self.config = yaml.safe_load(open(self.path, "r"))
+        self.config = Configs().get()
 
     @message.response
     def get(self):

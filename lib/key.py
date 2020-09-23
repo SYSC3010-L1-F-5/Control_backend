@@ -10,25 +10,11 @@ import os
 
 class Key:
 
-    def __init__(self):
-        self.key = None
-        self.device = None
-
-    def generate(self):
-        """
-
-            This method generates access key
-
-            Args:
-                self: accessing global parameters
-
-            Returns:
-                string: the access key
-
-        """
-        return b64encode(os.urandom(64)).decode('utf-8')
+    def __init__(self, device=None, key=None):
+        self.key = key
+        self.device = device
     
-    def add(self, device):
+    def generate(self):
         """
 
             This method add a new device to the
@@ -46,15 +32,12 @@ class Key:
                         otherwise
 
         """
-        if device is None:
-            return False
-        
-        self.device = device
-        self.key = self.generate()
 
-        return True
+        self.key = self.__generate()
 
-    def get_key(self, device=None):
+        return self.key
+
+    def get(self, device=None):
         """
 
             This method returns the assigned key
@@ -77,3 +60,31 @@ class Key:
         """
 
         return self.key
+
+    def __generate(self):
+        """
+
+            This method generates access key
+
+            Args:
+                self: accessing global parameters
+
+            Returns:
+                string: the access key
+
+        """
+        return b64encode(os.urandom(64)).decode('utf-8')
+
+    def __check(self):
+        """
+
+            This method checks if the same palce has 
+            the same named device in database
+
+            Args:
+                self: accessing global parameters
+
+            Returns:
+                string: the access key
+
+        """

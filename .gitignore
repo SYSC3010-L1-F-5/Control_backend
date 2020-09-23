@@ -2,3 +2,7 @@
 node_modules
 Desktop.ini
 __pycache__
+test.db
+*.todo.*
+*.bak
+*.db-journal

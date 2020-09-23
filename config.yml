@@ -1,6 +1,9 @@
 users:
-  admin: password
-  root: root
- 
+    admin: "password"
+    root: "root"
+
+database:
+    name: "test.db"
+
 plugins:
-  SenseHAT: true
+    SenseHAT: true

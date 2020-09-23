@@ -8,8 +8,13 @@ from route.event import Event
 from route.index import Index
 from route.user import User
 
+from lib.database import Database
+
 app = Flask(__name__)
 api = Api(app)
+
+# it seems that this line of code is called twice
+Database().create()
 
 api.add_resource(Index, '/')
 api.add_resource(Config, '/config')
