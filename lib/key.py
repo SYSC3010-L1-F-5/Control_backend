@@ -75,16 +75,3 @@ class Key:
         """
         return secrets.token_urlsafe(32)
 
-    def __check(self):
-        """
-
-            This method checks if the same palce has 
-            the same named device in database
-
-            Args:
-                self: accessing global parameters
-
-            Returns:
-                string: the access key
-
-        """

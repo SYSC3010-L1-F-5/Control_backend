@@ -15,7 +15,7 @@
     Todos:
         - add operation will be accessing by POST
         - delete operation will be accessing by DEL
-        - device pulse will be accessing by POST
+        - device pulse will be accessing by PUT
 
 """
 
@@ -37,7 +37,18 @@ class Device(Resource):
         self.database = Database("devices")
 
     @message.response
-    def post(self, operation, zone, type, name):
+    def get(self):
+        """
+
+            This method provides all devices infomation 
+            to frontend requires user access key
+
+        """
+
+        return "get", 200
+
+    @message.response
+    def post(self, zone=None, type=None, name=None):
         """
         
             This method is used by flask restful to 
@@ -55,13 +66,62 @@ class Device(Resource):
                 int: status code
         
         """
+        if (zone is None) or (type is None) or (name is None):
+            return  "", 404
+
+        
         self.operation = operation
         self.zone = zone
         self.type = type
         self.name = name
+        return self.__connect()
 
-        if operation == "add":
-            return self.__connect()
+    @message.response
+    def delete(self, key):
+        """
+        
+            This method is used by flask restful to 
+            delete device
+
+            Args:
+                self: access global variables
+                key: device key
+            
+            Returns:
+                string: the accessing key or error
+                int: status code
+        
+        """
+
+        if key is not None:
+            return "delete", 200
+        
+
+
+        return "", 404
+
+    @message.response
+    def put(self, key=None):
+        """
+        
+            This method is used by flask restful to 
+            get device pulse
+
+            Args:
+                self: access global variables
+                key: device key
+            
+            Returns:
+                string: the accessing key or error
+                int: status code
+        
+        """
+        if key is not None:
+            return "pulse", 200
+        
+
+
+        return "", 404
 
     def __connect(self):
         """

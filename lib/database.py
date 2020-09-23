@@ -58,7 +58,7 @@ class Database:
     def insert(self, data, table=None):
         """
 
-            This method connects to a database
+            This method inserts data to databse table
 
             Todos:
                 - handle exceptions
@@ -80,7 +80,7 @@ class Database:
             self.table = table
         
         self.__connect_db()
-        is_exists = self.__verify_data(data)
+        is_exists = self.__verify_data("insert", data)
 
         if self.table == "devices" and is_exists is False:
             self.cursor.execute('''insert into devices values (?, ?, ?, ?)''', (data["zone"], data["type"], data["name"], data["key"]))
@@ -91,6 +91,38 @@ class Database:
             self.cursor.execute('''insert into users values (?, ?, ?, ?)''', (data["username"], data["password"], data["email"], data["type"]))
             self.connection.commit()
             status = True
+
+        self.connection.close()
+        return status
+
+    def delete(self, key, table=None):
+        """
+
+            This method deletes data in databse table
+
+            Todos:
+                - handle exceptions
+
+            Args:
+                self: accessing global parameters
+                data: the data
+                table: wheere the data is stored
+
+            Returns:
+                bool: True if successful, False otherwise
+
+        """
+        status = False
+        
+        if self.table is None and table is None:
+            return False
+        elif self.table is None:
+            self.table = table
+        
+        self.__connect_db()
+        is_exists = self.__verify_data("delete", data)
+
+
 
         self.connection.close()
         return status
@@ -303,7 +335,7 @@ class Database:
         """
         self.cursor.execute('SELECT * FROM {};'.format(name))
 
-    def __verify_data(self, data):
+    def __verify_data(self, mode, data):
         """
 
             This method verify if data exists in the table
@@ -313,6 +345,7 @@ class Database:
             
             Args:
                 self: accessing global parameters
+                mode: insert, delete or get
                 data: data to be verified
             
             Returns:
@@ -322,15 +355,16 @@ class Database:
         """
         flag = False
 
-        self.__select_table(name=self.table)
-        for row in self.cursor:
-            if self.table == "devices":
-                if row["zone"] == data["zone"] and row["type"] == data["type"] and row["name"] == data["name"]:
-                    flag = True
-                    break
-            elif self.table == "users":
-                if row["username"] == data["username"]:
-                    flag = True
-                    break
+        if mode == "add":
+            self.__select_table(name=self.table)
+            for row in self.cursor:
+                if self.table == "devices":
+                    if row["zone"] == data["zone"] and row["type"] == data["type"] and row["name"] == data["name"]:
+                        flag = True
+                        break
+                elif self.table == "users":
+                    if row["username"] == data["username"]:
+                        flag = True
+                        break
             
         return flag

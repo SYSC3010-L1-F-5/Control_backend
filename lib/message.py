@@ -7,7 +7,7 @@
     200: HTTP OK
     401: HTTP Unauthorized
     404: HTTP Not Found
-    50x: Internal Server Error
+    500: Internal Server Error
 
 """
 from functools import wraps
@@ -29,9 +29,6 @@ class Message:
         """
         
             Changes the message to fit the structure
-
-            Todos:
-                - deal with errors
         
         """
         @wraps(func)
@@ -45,6 +42,21 @@ class Message:
             return result, status_code
         return wrapper
 
-    def message(self, code, message=None):
-        return message or self.messages[str(code)]
+    def errorhandler(self, status_code):
+        """
+
+            Response proper error formate
+
+        """
+        result = {
+            "message": self.message(status_code, ""),
+            "status_code": status_code,
+            "time": int(time.time() * 1000)
+        }
+        return result
+
+    def message(self, code, message):
+        if message == "":
+            message = self.messages[str(code)]
+        return message
             
