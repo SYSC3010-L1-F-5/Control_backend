@@ -54,6 +54,9 @@ class Device(Resource):
             This method is used by flask restful to 
             provide api access
 
+            Todos:
+                - change to parser.parse_args() type
+
             Args:
                 self: access global variables
                 operation: add a device

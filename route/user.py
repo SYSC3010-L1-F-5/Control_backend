@@ -3,6 +3,10 @@
     All user related methods will be here
     Author: Haoyu Xu
 
+    Todos:
+        - POST /set/: user setting related
+        - GET /<string:username>/: get user profile
+
 """
 
 from flask_restful import Resource

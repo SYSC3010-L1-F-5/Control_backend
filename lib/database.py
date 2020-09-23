@@ -282,6 +282,8 @@ class Database:
 
             Todos:
                 - handle exceptions
+                - add pulse to devices table
+                - add events table
             
             Args:
                 self: accessing global parameters
