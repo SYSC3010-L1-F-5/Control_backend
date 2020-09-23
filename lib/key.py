@@ -5,8 +5,8 @@
 
 """
 
-from base64 import b64encode
 import os
+import secrets
 
 class Key:
 
@@ -73,7 +73,7 @@ class Key:
                 string: the access key
 
         """
-        return b64encode(os.urandom(64)).decode('utf-8')
+        return secrets.token_urlsafe(32)
 
     def __check(self):
         """

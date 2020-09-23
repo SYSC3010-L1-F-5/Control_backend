@@ -81,7 +81,6 @@ class Database:
         
         self.__connect_db()
         is_exists = self.__verify_data(data)
-        print(is_exists)
 
         if self.table == "devices" and is_exists is False:
             self.cursor.execute('''insert into devices values (?, ?, ?, ?)''', (data["zone"], data["type"], data["name"], data["key"]))

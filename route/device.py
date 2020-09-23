@@ -1,6 +1,10 @@
 """
 
     All device related methods will be here
+
+    Only add method can user zone, type, name; others like
+    delete can only be access by key
+
     Author: Haoyu Xu
 
     - GET: The GET method requests a representation of the specified resource. Requests using GET should only retrieve data.
@@ -33,7 +37,7 @@ class Device(Resource):
         self.database = Database("devices")
 
     @message.response
-    def get(self, operation, zone, type, name):
+    def post(self, operation, zone, type, name):
         """
         
             This method is used by flask restful to 
