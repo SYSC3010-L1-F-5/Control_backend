@@ -29,7 +29,7 @@ def server_error(error):
 api.add_resource(Index, '/')
 api.add_resource(Config, '/config')
 api.add_resource(Device, 
-    '/device/add/<string:zone>/<string:type>/<string:name>',
+    '/device/add',
     '/device/delete/<string:key>',
     '/device/pulse/<string:key>',
     "/devices"

@@ -24,13 +24,13 @@ Author: Haoyu Xu (haoyu.xu@carleton.ca)
 
 - `/config`: `GET`, response server configuration file
 
-- `/device/add`: `POST`, add a device to the system, details are sent by `application/x-www-form-urlencoded` using `zone=device_zone&type=device_type&name=device_name`. `message` will be the device access key. The key is required for any operations on device.
+- `/device/add`: `POST`, add a device to the system, details are sent by `application/x-www-form-urlencoded` using `ip=device_ip&port=device_port&zone=device_zone&type=device_type&name=device_name`. `message` will be the device access key. The key is required for any operations on device.
 
 - `/device/delete`: `DELETE`, delete a device from system, details are sent by `application/x-www-form-urlencoded` using `key=device_access_key`. `message` will be boolean in string type, `true` is successful, `false` otherwise
 
 - `/devices`: `GET`, provides all registered devices to the frontend
 
-- `/pulse`: `PUT`, device pulse, key is sent by `application/x-www-form-urlencoded` using `key=device_access_key`. `message` will be `OK` if the device is registered, otherwise `status_code` will be `403`
+- `/pulse`: `PUT`, device pulse, key is sent by `application/x-www-form-urlencoded` using `key=device_access_key`. `message` will be `OK` if the device is registered, otherwise `status_code` will be `403`, pulse timestamp will be based on server time
 
 - `/user`: TBD
 
@@ -47,5 +47,16 @@ May add localhost modules to the system. Currently, SenseHAT plugin is being dev
 
 ### Camera
 
+``` json
+{
+
+}
+```
 
 ### Temperature, Humidity, Pressure, Motion Sensors
+
+``` json
+{
+    
+}
+```

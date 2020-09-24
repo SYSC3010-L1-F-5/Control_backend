@@ -10,9 +10,8 @@ import secrets
 
 class Key:
 
-    def __init__(self, device=None, key=None):
+    def __init__(self, key=None):
         self.key = key
-        self.device = device
     
     def generate(self):
         """
@@ -37,7 +36,7 @@ class Key:
 
         return self.key
 
-    def get(self, device=None):
+    def get(self):
         """
 
             This method returns the assigned key

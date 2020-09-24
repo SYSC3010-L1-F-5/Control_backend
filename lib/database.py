@@ -13,6 +13,24 @@ import pathlib
 from lib.configs import Configs
 configs = Configs().get()
 
+tables = {
+    "devices": {
+        "ip": "text",
+        "port": "numeric",
+        "zone": "text",
+        "type": "text",
+        "name": "text",
+        "key": "text",
+        "pulse": "numeric"
+    },
+    "users": {
+        "username": "text",
+        "password": "text",
+        "email": "text",
+        "type": "text"
+    }
+}
+
 class Database:
 
     def __init__(self, table=None):
@@ -80,10 +98,11 @@ class Database:
             self.table = table
         
         self.__connect_db()
+
         is_exists = self.__verify_data("insert", data)
 
         if self.table == "devices" and is_exists is False:
-            self.cursor.execute('''insert into devices values (?, ?, ?, ?)''', (data["zone"], data["type"], data["name"], data["key"]))
+            self.cursor.execute('''insert into devices values (?, ?, ?, ?, ?, ?, ?)''', (data["ip"], data["port"], data["zone"], data["type"], data["name"], data["key"], data["pulse"]))
             self.connection.commit()
             status = True
 
@@ -176,7 +195,7 @@ class Database:
 
         self.__select_table(name="devices")
         names = [description[0] for description in self.cursor.description]
-        if names != ["zone", "type", "name", "key"]:
+        if names != ["ip", "port", "zone", "type", "name", "key", "pulse"]:
             # need some clean up here
             return status
         
@@ -298,10 +317,13 @@ class Database:
 
         if name == "devices":
             self.cursor.execute(""" CREATE TABLE IF NOT EXISTS devices (
+                                ip text,
+                                port numeric,
                                 zone text,
                                 type text,
                                 name text,
-                                key text
+                                key text,
+                                pulse numeric
                             ); """)
             self.connection.commit()
             status = True
@@ -357,11 +379,11 @@ class Database:
         """
         flag = False
 
-        if mode == "add":
+        if mode == "insert":
             self.__select_table(name=self.table)
             for row in self.cursor:
                 if self.table == "devices":
-                    if row["zone"] == data["zone"] and row["type"] == data["type"] and row["name"] == data["name"]:
+                    if row["ip"] == data["ip"] and row["port"] == data["port"] and row["zone"] == data["zone"] and row["type"] == data["type"] and row["name"] == data["name"]:
                         flag = True
                         break
                 elif self.table == "users":

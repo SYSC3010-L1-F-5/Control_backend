@@ -19,17 +19,20 @@
 
 """
 
-from flask_restful import Resource
+from flask_restful import Resource, reqparse
 from lib.key import Key
 from lib.database import Database
 
 from lib.message import Message
 message = Message()
 
+parser = reqparse.RequestParser()
+
 class Device(Resource):
     
     def __init__(self):
-        self.operation = None
+        self.ip = None # device ip
+        self.port = None # device port
         self.zone = None # device zone
         self.type = None # device type
         self.name = None # device name
@@ -48,7 +51,7 @@ class Device(Resource):
         return "get", 200
 
     @message.response
-    def post(self, zone=None, type=None, name=None):
+    def post(self):
         """
         
             This method is used by flask restful to 
@@ -59,28 +62,29 @@ class Device(Resource):
 
             Args:
                 self: access global variables
-                operation: add a device
-                zone: where the device locates
-                type: device type
-                name: device name
             
             Returns:
                 string: the accessing key or error
                 int: status code
         
         """
-        if (zone is None) or (type is None) or (name is None):
-            return  "", 404
 
-        
-        self.operation = operation
-        self.zone = zone
-        self.type = type
-        self.name = name
+        parser.add_argument('ip', type=str, help='Device IP')
+        parser.add_argument('port', type=int, help='Device port')
+        parser.add_argument('zone', type=str, help='Device Zone')
+        parser.add_argument('type', type=str, help='Device Type')
+        parser.add_argument('name', type=str, help='Device Name')
+        args = parser.parse_args(strict=True)
+
+        self.ip = args["ip"]
+        self.port = args["port"]
+        self.zone = args["zone"]
+        self.type = args["type"]
+        self.name = args["name"]
         return self.__connect()
 
     @message.response
-    def delete(self, key):
+    def delete(self):
         """
         
             This method is used by flask restful to 
@@ -88,18 +92,16 @@ class Device(Resource):
 
             Args:
                 self: access global variables
-                key: device key
             
             Returns:
                 string: the accessing key or error
                 int: status code
         
         """
+        parser.add_argument('key', type=str, help='Device Key')
+        args = parser.parse_args(strict=True)
 
-        if key is not None:
-            return "delete", 200
-        
-
+        self.key = args["key"]
 
         return "", 404
 
@@ -140,17 +142,16 @@ class Device(Resource):
         
         """
 
-        self.key = Key(device={
-            "zone": self.zone,
-            "type": self.type,
-            "name": self.name
-        }).generate()
+        self.key = Key().generate()
 
         device = {
+            "ip": self.ip,
+            "port": self.port,
             "zone": self.zone,
             "type": self.type,
             "name": self.name,
-            "key": self.key
+            "key": self.key,
+            "pulse": -1
         }
 
         flag = self.database.insert(data=device)
