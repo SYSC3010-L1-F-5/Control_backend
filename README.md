@@ -42,21 +42,44 @@ May add localhost modules to the system. Currently, SenseHAT plugin is being dev
 
 ## Device Requirements
 
-1. use PUT to send pulse data to `/pulse`, message structure: `key=device_access_key`
-2. use PUT to send events to `/event`, message structure: `key=device_access_key&type=event_type&details=event_details&time=unix_timestamp`
+1. use `PUT` to send pulse data to `/pulse`, message structure: `who=device_access_key`
+2. use `PUT` to send events to `/event`, message structure: `who=device_access_key&what=event_details&when=unix_timestamp`
 
-### Camera
+### `what=event_details`
 
-``` json
-{
-
-}
-```
-
-### Temperature, Humidity, Pressure, Motion Sensors
+#### Camera
 
 ``` json
 {
-    
+    "type": event_type,
+    "data": replay_file_link
 }
 ```
+
+##### type
+
+- `motion_detected`: Detected motion in the camera frame
+
+##### data
+
+The link to access the replay file
+
+#### Temperature, Humidity, Pressure, Motion Sensors
+
+``` json
+{
+    "type": event_type,
+    "data": data
+}
+```
+
+##### type
+
+- `temperature`: for temperature sensors
+- `humidity`: for humidity sensors
+- `pressure`: for pressure sensors
+- `motion`: for motion sensors
+
+##### data
+
+in string or numeric type 
