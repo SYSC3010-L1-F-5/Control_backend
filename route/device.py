@@ -81,7 +81,25 @@ class Device(Resource):
         self.zone = args["zone"]
         self.type = args["type"]
         self.name = args["name"]
-        return self.__connect()
+
+        self.key = Key().generate()
+
+        device = {
+            "ip": self.ip,
+            "port": self.port,
+            "zone": self.zone,
+            "type": self.type,
+            "name": self.name,
+            "key": self.key,
+            "pulse": -1
+        }
+
+        flag = self.database.insert(data=device)
+
+        if flag is True:
+            return self.key, 200
+        else:
+            return "Device exists", 403 
 
     @message.response
     def delete(self):
@@ -102,8 +120,13 @@ class Device(Resource):
         args = parser.parse_args(strict=True)
 
         self.key = args["key"]
+        status = self.database.remove(self.key)
 
-        return "", 404
+        if status is True:
+            return "Device is deleted", 200
+        else:
+            return "Device not found", 404
+            
 
     @message.response
     def put(self, key=None):
@@ -128,35 +151,4 @@ class Device(Resource):
 
         return "", 404
 
-    def __connect(self):
-        """
-        
-            This method connects the device to the system
-
-            Todos:
-                - check if the same palce has the same named device
-                    in database
-
-            Args:
-                self: access global variables
-        
-        """
-
-        self.key = Key().generate()
-
-        device = {
-            "ip": self.ip,
-            "port": self.port,
-            "zone": self.zone,
-            "type": self.type,
-            "name": self.name,
-            "key": self.key,
-            "pulse": -1
-        }
-
-        flag = self.database.insert(data=device)
-
-        if flag is True:
-            return self.key, 200
-        else:
-            return "Device exists", 403 
+ 

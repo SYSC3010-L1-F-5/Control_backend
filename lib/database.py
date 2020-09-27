@@ -114,7 +114,7 @@ class Database:
         self.connection.close()
         return status
 
-    def delete(self, key, table=None):
+    def remove(self, data, table=None):
         """
 
             This method deletes data in databse table
@@ -139,9 +139,16 @@ class Database:
             self.table = table
         
         self.__connect_db()
-        is_exists = self.__verify_data("delete", data)
 
+        where=None
 
+        if self.table == "devices":
+            where = {
+                "name": "key",
+                "value": data
+            }
+
+        status = self.__delete_row(where=where)
 
         self.connection.close()
         return status
@@ -173,7 +180,7 @@ class Database:
         data = []
 
         if status is True:
-            self.cursor.execute('SELECT * FROM {}'.format(self.table));
+            self.__select_table(self.table)
             data = [dict((self.cursor.description[i][0], value) \
                for i, value in enumerate(row)) for row in self.cursor.fetchall()]
 
@@ -229,13 +236,13 @@ class Database:
 
         status = False
 
-        self.__select_table(name="devices")
+        self.__select_table(table="devices")
         names = [description[0] for description in self.cursor.description]
         if names != ["ip", "port", "zone", "type", "name", "key", "pulse"]:
             # need some clean up here
             return status
         
-        self.__select_table(name="users")
+        self.__select_table(table="users")
         names = [description[0] for description in self.cursor.description]
         if names != ["username", "password", "email", "type"]:
             # need some clean up here
@@ -377,7 +384,7 @@ class Database:
 
         return status
 
-    def __select_table(self, name):
+    def __select_table(self, table, where=None):
         """
 
             This method selects table
@@ -388,12 +395,20 @@ class Database:
             Args:
                 self: accessing global parameters
                 name: table name
+                where: select specific row field in
+                        {
+                            "name": table_name,
+                            "value": value
+                        }
             
             Returns:
                 string: return table data
 
         """
-        self.cursor.execute('SELECT * FROM {};'.format(name))
+        if where is None:
+            self.cursor.execute('SELECT * FROM {};'.format(table))
+        else:
+            self.cursor.execute('SELECT * FROM {} WHERE {}="{}";'.format(table, where["name"], where["value"]))
 
     def __verify_data(self, mode, data):
         """
@@ -405,7 +420,7 @@ class Database:
             
             Args:
                 self: accessing global parameters
-                mode: insert, delete or get
+                mode: insert or get
                 data: data to be verified
             
             Returns:
@@ -416,7 +431,7 @@ class Database:
         flag = False
 
         if mode == "insert":
-            self.__select_table(name=self.table)
+            self.__select_table(table=self.table)
             for row in self.cursor:
                 if self.table == "devices":
                     if row["ip"] == data["ip"] and row["port"] == data["port"] and row["zone"] == data["zone"] and row["type"] == data["type"] and row["name"] == data["name"]:
@@ -426,5 +441,41 @@ class Database:
                     if row["username"] == data["username"]:
                         flag = True
                         break
-            
+
         return flag
+
+    def __delete_row(self, where, table=None):
+        """
+
+            This method delete data from in the table
+
+            Todos:
+                - handle exceptions
+            
+            Args:
+                self: accessing global parameters
+                where: select specific row field in
+                        {
+                            "name": table_name,
+                            "value": value
+                        }
+                table: table name
+            
+            Returns:
+                bool: True if successful, False otherwise 
+
+        """
+        flag = False
+
+        # should have only one entity
+        self.__select_table(self.table, where)
+        data = [dict((self.cursor.description[i][0], value) \
+               for i, value in enumerate(row)) for row in self.cursor.fetchall()]
+
+        if len(data) == 0:
+            return False
+        else:
+            self.cursor.execute("""DELETE FROM {} WHERE {}="{}"; """.format(self.table, where["name"], where["value"]))
+            self.connection.commit()
+        
+        return True

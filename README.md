@@ -20,13 +20,13 @@ Author: Haoyu Xu (haoyu.xu@carleton.ca)
 
 ## Routes
 
-- `/`: currently for test only
+- `/`: currently for test only, working
 
-- `/config`: `GET`, response server configuration file
+- `/config`: `GET`, response server configuration file, working
 
-- `/device/add`: `POST`, add a device to the system, details are sent by `application/x-www-form-urlencoded` using `ip=device_ip&port=device_port&zone=device_zone&type=device_type&name=device_name`. `message` will be the device access key. The key is required for any operations on device.
+- `/device/add`: `POST`, add a device to the system, details are sent by `application/x-www-form-urlencoded` using `ip=device_ip&port=device_port&zone=device_zone&type=device_type&name=device_name`. `message` will be the device access key. The key is required for any operations on device, working
 
-- `/device/delete`: `DELETE`, delete a device from system, details are sent by `application/x-www-form-urlencoded` using `key=device_access_key`. `message` will be boolean in string type, `true` is successful, `false` otherwise
+- `/device/delete`: `DELETE`, delete a device from system, details are sent by `application/x-www-form-urlencoded` using `key=device_access_key`. `message` will be boolean in string type, `true` is successful, `false` otherwise, working
 
 - `/devices`: `GET`, provides all registered devices to the frontend
 
