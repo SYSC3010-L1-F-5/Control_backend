@@ -12,11 +12,6 @@
     - PUT: The PUT method replaces all current representations of the target resource with the request payload.
     - DELETE: The DELETE method deletes the specified resource.
 
-    Todos:
-        - add operation will be accessing by POST
-        - delete operation will be accessing by DEL
-        - device pulse will be accessing by PUT
-
 """
 
 from flask_restful import Resource, reqparse
@@ -45,6 +40,10 @@ class Device(Resource):
 
             This method provides all devices infomation 
             to frontend requires user access key
+
+            Returns:
+                list: device list
+                int: status code
 
         """
         
@@ -112,7 +111,7 @@ class Device(Resource):
                 self: access global variables
             
             Returns:
-                string: the accessing key or error
+                string: deleted or not
                 int: status code
         
         """
@@ -129,7 +128,7 @@ class Device(Resource):
             
 
     @message.response
-    def put(self, key=None):
+    def put(self):
         """
         
             This method is used by flask restful to 
@@ -140,15 +139,21 @@ class Device(Resource):
                 key: device key
             
             Returns:
-                string: the accessing key or error
+                string: pulsed or not
                 int: status code
         
         """
-        if key is not None:
-            return "pulse", 200
+        parser.add_argument('who', type=str, help='Device Key')
+        args = parser.parse_args(strict=True)
+
+        self.key = args["who"]
         
+        status = self.database.update(self.key)
 
+        if status is True:
+            return "Pulsed", 200
+        else:
+            return "Device not found", 404
 
-        return "", 404
 
  

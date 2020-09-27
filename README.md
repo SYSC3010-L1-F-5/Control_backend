@@ -28,9 +28,9 @@ Author: Haoyu Xu (haoyu.xu@carleton.ca)
 
 - `/device/delete`: `DELETE`, delete a device from system, details are sent by `application/x-www-form-urlencoded` using `key=device_access_key`. `message` will be boolean in string type, `true` is successful, `false` otherwise, working
 
-- `/devices`: `GET`, provides all registered devices to the frontend
+- `/devices`: `GET`, provides all registered devices to the frontend, working
 
-- `/pulse`: `PUT`, device pulse, key is sent by `application/x-www-form-urlencoded` using `key=device_access_key`. `message` will be `OK` if the device is registered, otherwise `status_code` will be `403`, pulse timestamp will be based on server time
+- `/pulse`: `PUT`, device pulse, key is sent by `application/x-www-form-urlencoded` using `who=device_access_key`. `message` will be `OK` if the device is registered, otherwise `status_code` will be `403`, pulse timestamp will be based on server time, working
 
 - `/user`: TBD
 

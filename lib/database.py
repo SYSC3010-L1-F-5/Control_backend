@@ -9,6 +9,7 @@ import os
 import json
 import sqlite3
 import pathlib
+import time
 
 from lib.configs import Configs
 configs = Configs().get()
@@ -153,7 +154,7 @@ class Database:
         self.connection.close()
         return status
 
-    def get(self, table=None):
+    def get(self, table=None, where=None):
         """
 
             This method get data from databse table
@@ -164,6 +165,11 @@ class Database:
             Args:
                 self: accessing global parameters
                 table: wheere the data is stored
+                where: select specific row field in
+                        {
+                            "name": table_name,
+                            "value": value
+                        }
 
             Returns:
                 list: empty list if the operation failed
@@ -180,7 +186,7 @@ class Database:
         data = []
 
         if status is True:
-            self.__select_table(self.table)
+            self.__select_table(self.table, where)
             data = [dict((self.cursor.description[i][0], value) \
                for i, value in enumerate(row)) for row in self.cursor.fetchall()]
 
@@ -188,6 +194,54 @@ class Database:
         self.connection.close()
 
         return data
+
+    def update(self, data, table=None):
+        """
+
+            This method update data in databse table
+
+            Todos:
+                - handle exceptions
+
+            Args:
+                self: accessing global parameters
+                table: wheere the data is stored
+                where: select specific row field in
+                        {
+                            "name": table_name,
+                            "value": value
+                        }
+
+            Returns:
+                list: empty list if the operation failed
+                        list with specific table data
+
+        """
+
+        if self.table is None and table is None:
+            return False
+        elif self.table is None:
+            self.table = table
+        
+        status = self.__connect_db()
+
+        where=None
+        set=None
+
+        if self.table == "devices":
+            where = {
+                "name": "key",
+                "value": data
+            }
+            set = int(time.time() * 1000)
+
+        if status is True:
+            status = self.__update_row(where, set)
+
+        #close the connection
+        self.connection.close()
+
+        return status
 
     def __check_db(self):
         """
@@ -477,5 +531,42 @@ class Database:
         else:
             self.cursor.execute("""DELETE FROM {} WHERE {}="{}"; """.format(self.table, where["name"], where["value"]))
             self.connection.commit()
+        
+        return True
+
+    def __update_row(self, where, set, table=None):
+        """
+
+            This method update data from in the table
+
+            Todos:
+                - handle exceptions
+            
+            Args:
+                self: accessing global parameters
+                where: select specific row field in
+                        {
+                            "name": table_name,
+                            "value": value
+                        }
+                table: table name
+            
+            Returns:
+                bool: True if successful, False otherwise 
+
+        """
+        flag = False
+
+        # should have only one entity
+        self.__select_table(self.table, where)
+        data = [dict((self.cursor.description[i][0], value) \
+               for i, value in enumerate(row)) for row in self.cursor.fetchall()]
+
+        if len(data) == 0:
+            return False
+        else:
+            if self.table == "devices":
+                self.cursor.execute("""UPDATE {} SET pulse={} WHERE {}="{}"; """.format(self.table, set, where["name"], where["value"]))
+                self.connection.commit()
         
         return True
