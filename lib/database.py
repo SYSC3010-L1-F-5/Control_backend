@@ -146,6 +146,42 @@ class Database:
         self.connection.close()
         return status
 
+    def get(self, table=None):
+        """
+
+            This method get data from databse table
+
+            Todos:
+                - handle exceptions
+
+            Args:
+                self: accessing global parameters
+                table: wheere the data is stored
+
+            Returns:
+                list: empty list if the operation failed
+                        list with specific table data
+
+        """
+
+        if self.table is None and table is None:
+            return False
+        elif self.table is None:
+            self.table = table
+        
+        status = self.__connect_db()
+        data = []
+
+        if status is True:
+            self.cursor.execute('SELECT * FROM {}'.format(self.table));
+            data = [dict((self.cursor.description[i][0], value) \
+               for i, value in enumerate(row)) for row in self.cursor.fetchall()]
+
+        #close the connection
+        self.connection.close()
+
+        return data
+
     def __check_db(self):
         """
 

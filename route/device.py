@@ -47,8 +47,8 @@ class Device(Resource):
             to frontend requires user access key
 
         """
-
-        return "get", 200
+        
+        return self.database.get(), 200
 
     @message.response
     def post(self):
