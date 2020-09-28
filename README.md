@@ -42,7 +42,7 @@ Author: Haoyu Xu (haoyu.xu@carleton.ca)
 
 - `/event/clear`: `PUT`, clear plugin status, working
 
-- `/user`: TBD
+- `/user`: TBD, not in SYSC 3010 project scope
 
 
 ## Plugins

@@ -3,7 +3,7 @@
     All user related methods will be here
     Author: Haoyu Xu
 
-    Todos:
+    TODO: not in SYSC 3010 project scope
         - POST /set/: user setting related
         - GET /<string:username>/: get user profile
 

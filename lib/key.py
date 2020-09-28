@@ -20,7 +20,7 @@ class Key:
             This method add a new device to the
             database, and assign a access key for it
 
-            Todos:
+            TODO:
                 - databse operations
 
             Args:
@@ -57,7 +57,7 @@ class Key:
             This method returns the assigned key
             of the device
 
-            Todos:
+            TODO:
                 - databse operations, such as read the 
                     key from database
 

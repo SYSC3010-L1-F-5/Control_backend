@@ -2,7 +2,7 @@
 
     All databse related methods will be here
 
-    Todos:
+    TODO:
         - clean up
         - handle exceptions
 
@@ -29,7 +29,7 @@ tables = {
         "key": "text",
         "pulse": "numeric"
     },
-    "users": {
+    "users": { # TODO: not in SYSC 3010 project scope
         "username": "text",
         "password": "text",
         "email": "text",
@@ -42,6 +42,18 @@ tables = {
         "type": "text",
         "details": "text",
         "hidden": "boolean" # 0 => false, 1 => true
+    # },
+    # "logs": { # TODO: not in SYSC 3010 project scope
+    #     "time": "numeric", # 1601330980228
+    #     "user": "text", # admin
+    #     "action": "text", # delete 
+    #     "type": "text", # device
+    #     "which": "text" # Na5adCHPj7p4X35Od_hQ8oQkDq8uImV_yGfPQ_3--UU
+    # }
+    # "notifications": { # TODO: not in SYSC 3010 project scope
+    #     "type": "text", # temperature
+    #     "upper": "numeric", # 30
+    #     "lower": "numeric", # 20
     }
 }
 
@@ -59,7 +71,7 @@ class Database:
 
             This method creates a database files
 
-            Todos:
+            TODO:
                 - handle exceptions
                 - if database exists, verify tables:
                     - successful: pass
@@ -92,7 +104,7 @@ class Database:
 
             This method inserts data to databse table
 
-            Todos:
+            TODO:
                 - handle exceptions
 
             Args:
@@ -138,7 +150,7 @@ class Database:
 
             This method deletes data in databse table
 
-            Todos:
+            TODO:
                 - handle exceptions
 
             Args:
@@ -182,7 +194,7 @@ class Database:
 
             This method get data from databse table
 
-            Todos:
+            TODO:
                 - handle exceptions
 
             Args:
@@ -228,7 +240,7 @@ class Database:
 
             This method update data in databse table
 
-            Todos:
+            TODO:
                 - handle exceptions
 
             Args:
@@ -295,7 +307,7 @@ class Database:
             This method checks database, if verify databse failed
             then backup and create a new db
 
-            Todos:
+            TODO:
                 - handle exceptions
 
             Args:
@@ -323,7 +335,7 @@ class Database:
 
             This method verifies tables
 
-            Todos:
+            TODO:
                 - handle exceptions
 
             Args:
@@ -363,7 +375,7 @@ class Database:
 
             This helper method creates a database files
 
-            Todos:
+            TODO:
                 - handle exceptions
 
             Args:
@@ -393,7 +405,7 @@ class Database:
 
             This method connects db
 
-            Todos:
+            TODO:
                 - handle exceptions
 
             Args:
@@ -425,7 +437,7 @@ class Database:
 
             This method initiates tables
 
-            Todos:
+            TODO:
                 - handle exceptions
 
             Args:
@@ -449,7 +461,7 @@ class Database:
 
             This method creates table
 
-            Todos:
+            TODO:
                 - handle exceptions
                 - add pulse to devices table
                 - add events table
@@ -507,7 +519,7 @@ class Database:
 
             This method selects table
 
-            Todos:
+            TODO:
                 - handle exceptions
             
             Args:
@@ -543,7 +555,7 @@ class Database:
 
             This method verify if data exists in the table
 
-            Todos:
+            TODO:
                 - handle exceptions
             
             Args:
@@ -581,7 +593,7 @@ class Database:
 
             This method delete data from in the table
 
-            Todos:
+            TODO:
                 - handle exceptions
             
             Args:
@@ -617,7 +629,7 @@ class Database:
 
             This method update data from in the table
 
-            Todos:
+            TODO:
                 - handle exceptions
             
             Args:

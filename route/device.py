@@ -5,7 +5,7 @@
     Only add method can user zone, type, name; others like
     delete can only be access by key
 
-    Todos:
+    TODO:
         - device selection on /devices
 
     Author: Haoyu Xu

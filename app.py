@@ -34,7 +34,7 @@ api.add_resource(Device,
     "/devices",
     "/pulse"
     )
-api.add_resource(User, '/user')
+# api.add_resource(User, '/user')
 api.add_resource(Event, 
     '/events',
     "/event/add",
