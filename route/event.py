@@ -72,7 +72,10 @@ class Event(Resource):
 
         if request.path.split("/")[1] != "events":
             return "", 404
-        
+        order = {
+                    "name": "time",
+                    "value": "ASC"
+                }
         return self.database.get(), 200
 
     @message.response

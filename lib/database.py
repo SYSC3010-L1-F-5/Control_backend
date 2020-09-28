@@ -177,7 +177,7 @@ class Database:
         self.connection.close()
         return status
 
-    def get(self, table=None, where=None):
+    def get(self, table=None, where=None, order=None):
         """
 
             This method get data from databse table
@@ -190,8 +190,13 @@ class Database:
                 table: wheere the data is stored
                 where: select specific row field in
                         {
-                            "name": table_name,
+                            "name": field_name,
                             "value": value
+                        }
+                order: sort the data by specific field
+                        {
+                            "name": field_name,
+                            "value": value, ASC | DESC
                         }
 
             Returns:
@@ -209,7 +214,7 @@ class Database:
         data = []
 
         if status is True:
-            self.__select_table(self.table, where)
+            self.__select_table(table=self.table, where=where, order=order)
             data = [dict((self.cursor.description[i][0], value) \
                for i, value in enumerate(row)) for row in self.cursor.fetchall()]
 
@@ -497,7 +502,7 @@ class Database:
 
         return status
 
-    def __select_table(self, table, where=None):
+    def __select_table(self, table, where=None, order=None):
         """
 
             This method selects table
@@ -510,18 +515,28 @@ class Database:
                 name: table name
                 where: select specific row field in
                         {
-                            "name": table_name,
+                            "name": field_name,
                             "value": value
+                        }
+                order: sort the data by specific field
+                        {
+                            "name": field_name,
+                            "value": value, ASC | DESC
                         }
             
             Returns:
                 string: return table data
 
         """
-        if where is None:
+        
+        if where is None and order is None:
             self.cursor.execute('SELECT * FROM {};'.format(table))
-        else:
+        elif order is None:
             self.cursor.execute('SELECT * FROM {} WHERE {}="{}";'.format(table, where["name"], where["value"]))
+        elif where is None:
+            self.cursor.execute('SELECT * FROM {} ORDER BY {} {};'.format(table, order["name"], order["value"]))
+        else:
+            self.cursor.execute('SELECT * FROM {} WHERE {}="{}" ORDER BY {} {};'.format(table, where["name"], where["value"], order["name"], order["value"]))
 
     def __verify_data(self, mode, data):
         """
