@@ -26,7 +26,7 @@
 """
 
 import json
-from flask_restful import Resource, reqparse
+from flask_restful import Resource, reqparse, request
 from lib.database import Database
 from lib.key import Key
 from lib.message import Message
@@ -51,7 +51,7 @@ class Event(Resource):
     def get(self):
         """
 
-            This method provides all devices infomation 
+            This method provides all event details
             to frontend requires user access key
 
             Returns:
@@ -59,6 +59,9 @@ class Event(Resource):
                 int: status code
 
         """
+
+        if request.path.split("/")[1] != "events":
+            return "", 404
         
         return self.database.get(), 200
 
@@ -77,6 +80,9 @@ class Event(Resource):
                 int: status code
         
         """
+
+        if request.path.split("/")[2] != "add":
+            return "", 404
 
         parser.add_argument('who', type=str, help='Device Access Key')
         parser.add_argument('what', type=str, help='Event details in json')
@@ -122,6 +128,9 @@ class Event(Resource):
                 int: status code
         
         """
+        if request.path.split("/")[2] != "delete":
+            return "", 404
+
         parser.add_argument('which', type=str, help='Event UUID')
         args = parser.parse_args(strict=True)
 
@@ -148,6 +157,9 @@ class Event(Resource):
                 int: status code
         
         """
+        if request.path.split("/")[2] != "update":
+            return "", 404
+
         parser.add_argument('which', type=str, help='Event UUID')
         parser.add_argument('what', type=str, help='Event details')
         parser.add_argument('hidden', type=int, help='Hide event')
@@ -202,4 +214,3 @@ class Event(Resource):
             return False
         else:
             return True
-            

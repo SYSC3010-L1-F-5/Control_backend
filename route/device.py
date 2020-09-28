@@ -14,7 +14,7 @@
 
 """
 
-from flask_restful import Resource, reqparse
+from flask_restful import Resource, reqparse, request
 from lib.key import Key
 from lib.database import Database
 
@@ -46,6 +46,8 @@ class Device(Resource):
                 int: status code
 
         """
+        if request.path.split("/")[1] != "devices":
+            return "", 404
         
         return self.database.get(), 200
 
@@ -64,13 +66,16 @@ class Device(Resource):
         
         """
 
+        if request.path.split("/")[2] != "add":
+            return "", 404
+        
         parser.add_argument('ip', type=str, help='Device IP')
         parser.add_argument('port', type=int, help='Device port')
         parser.add_argument('zone', type=str, help='Device Zone')
         parser.add_argument('type', type=str, help='Device Type')
         parser.add_argument('name', type=str, help='Device Name')
         args = parser.parse_args(strict=True)
-
+        
         self.ip = args["ip"]
         self.port = args["port"]
         self.zone = args["zone"]
@@ -111,6 +116,9 @@ class Device(Resource):
                 int: status code
         
         """
+        if request.path.split("/")[2] != "delete":
+            return "", 404
+
         parser.add_argument('key', type=str, help='Device Key')
         args = parser.parse_args(strict=True)
 
@@ -139,6 +147,9 @@ class Device(Resource):
                 int: status code
         
         """
+        if request.path.split("/")[1] != "pulse":
+            return "", 404
+
         parser.add_argument('who', type=str, help='Device Key')
         args = parser.parse_args(strict=True)
 
@@ -176,4 +187,3 @@ class Device(Resource):
             return False
         else:
             return True
-            

@@ -270,7 +270,6 @@ class Database:
                     "name": "details",
                     "value": data["details"]
                 }
-                print(type(set["value"]))
 
         if status is True:
             status = self.__update_row(where, set)
@@ -629,7 +628,6 @@ class Database:
         if len(data) == 0:
             return False
         else:
-            print(set, where, self.table)
             self.cursor.execute("""UPDATE {} SET {}="{}" WHERE {}="{}"; """.format(self.table, set["name"], set["value"], where["name"], where["value"]))
                 
         self.connection.commit()
