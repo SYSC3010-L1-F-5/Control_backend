@@ -37,12 +37,8 @@ message = Message()
 from .device import Device
 device = Device()
 
-from lib.configs import Configs
-config = Configs().get()
-
-if config["plugins"]["SenseHAT"] is True:
-    from plugins.sensehat import SenseHAT
-    plugin = SenseHAT()
+from lib.plugin import Plugin
+plugin = Plugin()
 
 parser = reqparse.RequestParser()
 
