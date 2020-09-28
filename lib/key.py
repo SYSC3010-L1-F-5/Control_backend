@@ -7,6 +7,7 @@
 
 import os
 import secrets
+import uuid
 
 class Key:
 
@@ -35,6 +36,20 @@ class Key:
         self.key = self.__generate()
 
         return self.key
+
+    def uuid(self, seed=None):
+        """
+
+            This method generates uuid
+
+            Todo:
+                - use string to generate reproducilbe uuid
+
+            Returns:
+                string: uuid
+        """
+
+        return str(uuid.uuid4())
 
     def get(self):
         """

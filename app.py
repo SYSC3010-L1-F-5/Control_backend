@@ -35,7 +35,12 @@ api.add_resource(Device,
     "/pulse"
     )
 api.add_resource(User, '/user')
-api.add_resource(Event, '/event')
+api.add_resource(Event, 
+    '/events',
+    "/event/add",
+    "/event/delete",
+    "/event/update"
+    )
 
 if __name__ == '__main__':
     app.run()

@@ -53,11 +53,7 @@ class Device(Resource):
     def post(self):
         """
         
-            This method is used by flask restful to 
-            provide api access
-
-            Todos:
-                - change to parser.parse_args() type
+            This method adds a device into database
 
             Args:
                 self: access global variables
@@ -155,5 +151,29 @@ class Device(Resource):
         else:
             return "Device not found", 404
 
+    def is_exists(self, key):
+        """
 
- 
+            Check if a device exists in the database
+
+            Args:
+                self: access global variables
+                key: device key
+            
+            Returns: True if exists, False otherwise
+
+        """
+
+        where = {
+            "name": "key",
+            "value": key
+        }
+
+        # only one entity should be returnd
+        data = self.database.get(where=where)
+
+        if len(data) == 0:
+            return False
+        else:
+            return True
+            

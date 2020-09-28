@@ -29,6 +29,14 @@ tables = {
         "password": "text",
         "email": "text",
         "type": "text"
+    },
+    "events": {
+        "uuid": "text",
+        "device": "text",
+        "time": "numeric",
+        "type": "text",
+        "details": "text",
+        "hidden": "boolean" # 0 => false, 1 => true
     }
 }
 
@@ -112,6 +120,11 @@ class Database:
             self.connection.commit()
             status = True
 
+        if self.table == "events" and is_exists is False:
+            self.cursor.execute('''insert into events values (?, ?, ?, ?, ?, ?)''', (data["uuid"], data["device"], data["time"], data["type"], data["details"], data["hidden"]))
+            self.connection.commit()
+            status = True
+
         self.connection.close()
         return status
 
@@ -146,6 +159,11 @@ class Database:
         if self.table == "devices":
             where = {
                 "name": "key",
+                "value": data
+            }
+        elif self.table == "events":
+            where = {
+                "name": "uuid",
                 "value": data
             }
 
@@ -233,7 +251,26 @@ class Database:
                 "name": "key",
                 "value": data
             }
-            set = int(time.time() * 1000)
+            set = {
+                "name": "pulse",
+                "value": int(time.time() * 1000)
+            }
+        elif self.table == "events":
+            where = {
+                    "name": "uuid",
+                    "value": data["uuid"]
+            }
+            if data["type"] == "hidden":
+                set = {
+                    "name": "hidden",
+                    "value": data["hidden"]
+                }
+            elif data["type"] == "details":
+                set = {
+                    "name": "details",
+                    "value": data["details"]
+                }
+                print(type(set["value"]))
 
         if status is True:
             status = self.__update_row(where, set)
@@ -299,6 +336,12 @@ class Database:
         self.__select_table(table="users")
         names = [description[0] for description in self.cursor.description]
         if names != ["username", "password", "email", "type"]:
+            # need some clean up here
+            return status
+
+        self.__select_table(table="events")
+        names = [description[0] for description in self.cursor.description]
+        if names != ["uuid", "device", "time", "type", "details", "hidden"]:
             # need some clean up here
             return status
         
@@ -388,6 +431,7 @@ class Database:
 
         status = self.__create_table(name="devices")
         status = self.__create_table(name="users")
+        status = self.__create_table(name="events")
 
         return status
 
@@ -430,6 +474,17 @@ class Database:
                                 password text,
                                 email text,
                                 type text
+                            ); """)
+            self.connection.commit()
+            status = True
+        elif name == "events":
+            self.cursor.execute(""" CREATE TABLE IF NOT EXISTS events (
+                                uuid text,
+                                device text,
+                                time numeric,
+                                type text,
+                                details text,
+                                hidden boolean
                             ); """)
             self.connection.commit()
             status = True
@@ -495,6 +550,10 @@ class Database:
                     if row["username"] == data["username"]:
                         flag = True
                         break
+                elif self.table == "events":
+                    if row["device"] == data["device"] and row["time"] == data["time"] and row["details"] == data["details"] and row["type"] == data["type"]:
+                        flag = True
+                        break
 
         return flag
 
@@ -549,6 +608,11 @@ class Database:
                             "name": table_name,
                             "value": value
                         }
+                set: update value
+                        {
+                            "name": field_name,
+                            "value": value
+                        }
                 table: table name
             
             Returns:
@@ -565,8 +629,9 @@ class Database:
         if len(data) == 0:
             return False
         else:
-            if self.table == "devices":
-                self.cursor.execute("""UPDATE {} SET pulse={} WHERE {}="{}"; """.format(self.table, set, where["name"], where["value"]))
-                self.connection.commit()
-        
+            print(set, where, self.table)
+            self.cursor.execute("""UPDATE {} SET {}="{}" WHERE {}="{}"; """.format(self.table, set["name"], set["value"], where["name"], where["value"]))
+                
+        self.connection.commit()
+
         return True
