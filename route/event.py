@@ -31,11 +31,19 @@ import json
 from flask_restful import Resource, reqparse, request
 from lib.database import Database
 from lib.key import Key
+
 from lib.message import Message
 message = Message()
 
 from .device import Device
 device = Device()
+
+from lib.configs import Configs
+config = Configs().get()
+
+if config["plugins"]["SenseHAT"] is True:
+    from plugins.sensehat import SenseHAT
+    plugin = SenseHAT()
 
 parser = reqparse.RequestParser()
 
@@ -112,6 +120,7 @@ class Event(Resource):
         flag = self.database.insert(data=event)
 
         if flag is True:
+            plugin.on(event=event)
             return self.uuid, 200
         else:
             return "Duplicated event", 403
@@ -159,7 +168,8 @@ class Event(Resource):
                 int: status code
         
         """
-        if request.path.split("/")[2] != "update":
+        path = request.path.split("/")[2]
+        if path != "update" and path != "clear":
             return "", 404
 
         parser.add_argument('which', type=str, help='Event UUID')
@@ -167,6 +177,12 @@ class Event(Resource):
         parser.add_argument('hidden', type=int, help='Hide event')
         args = parser.parse_args(strict=True)
 
+        # /event/clear
+        if path == "clear":
+            plugin.off()
+            return "OK", 200
+
+        # /event/update
         self.uuid = args["which"]
         if args["what"] is not None:
             self.what = args["what"]
@@ -216,3 +232,5 @@ class Event(Resource):
             return False
         else:
             return True
+
+    

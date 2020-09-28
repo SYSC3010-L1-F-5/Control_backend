@@ -39,7 +39,8 @@ api.add_resource(Event,
     '/events',
     "/event/add",
     "/event/delete",
-    "/event/update"
+    "/event/update",
+    "/event/clear"
     )
 
 if __name__ == '__main__':

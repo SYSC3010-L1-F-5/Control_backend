@@ -34,11 +34,13 @@ Author: Haoyu Xu (haoyu.xu@carleton.ca)
 
 - `/events`: `GET`, provides all events to the frontend, working
 
-- `/event/add`: `POST`, add a event to the system, details are sent by `application/x-www-form-urlencoded` using `who=device_access_key&what=event_details&when=unix_timestamp`, in which `what` requires a json. `message` will be a uuid to identify the event. The uuid is required to delete or update the event, working
+- `/event/add`: `POST`, add a event to the system, details are sent by `application/x-www-form-urlencoded` using `who=device_access_key&what=event_details&when=unix_timestamp`, in which `what` requires a json, when a new event is recieved, depends on its type, plugin may turn on. `message` will be a uuid to identify the event. The uuid is required to delete or update the event, working
 
 - `/event/delete`: `DELETE`, delete a event from system, details are sent by `application/x-www-form-urlencoded` using `which=event_uuid`. `message` will be boolean in string type, `true` is successful, `false` otherwise, working
 
 - `/event/update`: `PUT`, update a event, key is sent by `application/x-www-form-urlencoded` using `which=event_uuid&what=event_details&hidden=(0/1)`, in which `what` is the `data` part of the `event_details`, and `hidden` equals `1` is to hide the event, `0` otherwise, one or both of these two parts must be presented. `message` will be `Updated` if the event is found, otherwise `status_code` will be `403`, working
+
+- `/event/clear`: `PUT`, clear plugin status, working
 
 - `/user`: TBD
 

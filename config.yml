@@ -7,3 +7,14 @@ database:
 
 plugins:
     SenseHAT: true
+
+threshold:
+    temperature: 
+        upper: 30
+        lower: 20
+    humidity: 
+        upper: 70
+        lower: 20
+    pressure: 
+        upper: 1200
+        lower: 800
