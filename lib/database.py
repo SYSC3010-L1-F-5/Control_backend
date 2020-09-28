@@ -1,6 +1,11 @@
 """
 
     All databse related methods will be here
+
+    Todos:
+        - clean up
+        - handle exceptions
+
     Author: Haoyu Xu
 
 """

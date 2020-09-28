@@ -2,6 +2,8 @@
 
     SenseHAT for quick status check
 
+    Author: Haoyu Xu
+
 """
 
 from sense_hat import SenseHat

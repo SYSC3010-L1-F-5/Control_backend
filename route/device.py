@@ -5,6 +5,9 @@
     Only add method can user zone, type, name; others like
     delete can only be access by key
 
+    Todos:
+        - device selection on /devices
+
     Author: Haoyu Xu
 
     - GET: The GET method requests a representation of the specified resource. Requests using GET should only retrieve data.
