@@ -5,8 +5,8 @@
 
 """
 
-from lib.configs import Configs
-CONFIG = Configs().get()
+from route.config import Config
+CONFIG = Config().fetch()
 
 if CONFIG["plugins"]["SenseHAT"] is True:
     from plugins.sensehat import SenseHAT

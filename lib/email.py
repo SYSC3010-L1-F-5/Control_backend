@@ -14,8 +14,8 @@ import time
 
 from route.device import Device
 
-from .configs import Configs
-CONFIG = Configs().get()
+from route.config import Config
+CONFIG = Config().get()
 
 EMAIL = {
     "user": "5bfd66678de399dab6322c0cfb0f972b",

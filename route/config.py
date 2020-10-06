@@ -4,9 +4,11 @@
     Author: Haoyu Xu
 
 """
+import os
+import pathlib
+import yaml
 
 from flask_restful import Resource
-from lib.configs import Configs
 
 from lib.message import Message
 MESSAGE = Message()
@@ -19,7 +21,8 @@ class Config(Resource):
             self.config: system config
 
         """
-        self.config = Configs().get()
+        self.path = os.path.join(pathlib.Path(__file__).parent.absolute(), "..", "config.yml")
+        self.config = yaml.safe_load(open(self.path, "r"))
 
     @MESSAGE.response
     def get(self):
@@ -38,3 +41,18 @@ class Config(Resource):
         """
 
         return self.config, 200
+
+    def fetch(self):
+        """
+
+            This method provides the configuration of the system
+
+            Args:
+                self: access global variables
+
+            Returns:
+                str: system config
+
+        """
+
+        return self.config

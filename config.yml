@@ -3,7 +3,7 @@ users:
     root: "root"
 
 database:
-    name: "test1.db"
+    name: "test.db"
 
 plugins:
     SenseHAT: true

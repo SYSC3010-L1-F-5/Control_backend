@@ -14,8 +14,8 @@ import sqlite3
 import pathlib
 import time
 
-from lib.configs import Configs
-CONFIG = Configs().get()
+from route.config import Config
+CONFIG = Config().fetch()
 
 TABLES = {
     "devices": {
