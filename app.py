@@ -36,11 +36,12 @@ API.add_resource(Device,
     )
 # api.add_resource(User, '/user')
 API.add_resource(Event, 
-    '/events',
+    "/events",
     "/event/add",
     "/event/delete",
     "/event/update",
-    "/event/clear"
+    "/event/clear",
+    "/event/<uuid>"
     )
 
 if __name__ == '__main__':

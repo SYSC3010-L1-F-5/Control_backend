@@ -28,7 +28,7 @@ Author: Haoyu Xu (haoyu.xu@carleton.ca)
 
 - `/device/delete`: `DELETE`, delete a device from system, details are sent by `application/x-www-form-urlencoded` using `key=device_access_key`. `message` will be string type, `Device is deleted` and `200` is successful, `Device not found` and `404` otherwise, working
 
-- `/device/<key>`: `GET`, get a specific data collecotr info from system. `message` will be json type or `null`, `200` is successful, `404` otherwise, working
+- `/device/<key>`: `GET`, get a specific data collecotr details from system. `message` will be json type or `null`, `200` is successful, `404` otherwise, working
 
 - `/devices`: `GET`, provides all registered devices to the frontend, working
 
@@ -43,6 +43,8 @@ Author: Haoyu Xu (haoyu.xu@carleton.ca)
 - `/event/update`: `PUT`, update a event, key is sent by `application/x-www-form-urlencoded` using `which=event_uuid&what=event_details&hidden=(0/1)`, in which `what` is the `data` part of the `event_details`, and `hidden` equals `1` is to hide the event, `0` otherwise, one or both of these two parts must be presented. `message` will be `Updated` if the event is found, otherwise `status_code` will be `403`, working
 
 - `/event/clear`: `PUT`, clear plugin status, working
+
+- `/event/<uuid>`: `GET`, get a specific event details from system. `message` will be json type or `null`, `200` is successful, `404` otherwise, working
 
 - `/user`: TBD, not in SYSC 3010 project scope
 
@@ -123,12 +125,12 @@ $ curl -X DELETE http://10.1.0.1:5000/device/delete -d "key=Ee_M7mT9wuoeOn8I1GYt
 }
 ```
 
-### `/device/Ee_M7mT9wuoeOn8I1GYtC6NQ5EgXyKLZ6tGbyiTA_b0`
+### `/device/<key>`
 
-Used by **frontend**, to get a specific data collecotr info
+Used by **frontend**, to get a specific data collecotr details
 
 ``` shell
-$ curl -X DELETE http://10.1.0.1:5000/device/delete -d "key=Ee_M7mT9wuoeOn8I1GYtC6NQ5EgXyKLZ6tGbyiTA_b0"
+$ curl -X GET http://10.1.0.1:5000/device/Ee_M7mT9wuoeOn8I1GYtC6NQ5EgXyKLZ6tGbyiTA_b0
 {
     "message": {
                 "ip": "10.0.0.1",
@@ -206,6 +208,26 @@ $ curl -X PUT http://10.1.0.1:5000/event/clear
     "message": "OK",
     "status_code": 200,
     "time": 1601333900393
+}
+```
+
+### `/event/<uuid>`
+
+Used by **frontend**, to get a specific event details
+
+``` shell
+$ curl -X GET http://10.1.0.1:5000/event/67a87a35-5508-4dba-9b40-d810a9af3992
+{
+    "message": {
+        "uuid": "67a87a35-5508-4dba-9b40-d810a9af3992",
+        "device": "Ee_M7mT9wuoeOn8I1GYtC6NQ5EgXyKLZ6tGbyiTA_b0",
+        "time": 1601240112209,
+        "type": "temperature",
+        "details": "10",
+        "hidden": 0
+    },
+    "status_code": 200,
+    "time": 1602009661897
 }
 ```
 

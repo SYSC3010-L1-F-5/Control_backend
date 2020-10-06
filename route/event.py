@@ -67,7 +67,7 @@ class Event(Resource):
         self.hidden = 0
 
     @MESSAGE.response
-    def get(self):
+    def get(self, uuid=None):
         """
 
             This method provides all event details
@@ -75,6 +75,7 @@ class Event(Resource):
 
             Args:
                 self: access global variables
+                uuid: event uuid
 
             Returns:
                 list: event list
@@ -82,15 +83,25 @@ class Event(Resource):
 
         """
 
-        if request.path.split("/")[1] != "events":
-            return "", 404
+        # /events
+        if request.path.split("/")[1] == "events":
 
-        order = {
+            order = {
                     "name": "time",
                     "value": "DESC"
                 }
 
-        return self.database.get(order=order), 200
+            return self.database.get(order=order), 200
+        
+        # /event/<uuid>
+        if request.path.split("/")[2] == uuid:
+            details = self.details(uuid)
+            if details is not None:
+                return details, 200
+            else:
+                return "Event not found", 404
+        
+        return "", 404
 
     @MESSAGE.response
     def post(self):
@@ -239,15 +250,36 @@ class Event(Resource):
 
         """
 
+        data = self.details(uuid)
+
+        if data is None:
+            return False
+        else:
+            return True
+
+    def details(self, uuid):
+        """
+
+            Return event details
+
+            Args:
+                self: access global variables
+                uuid: event uuid
+            
+            Returns:
+                json: event uuid
+
+        """
+
         where = {
             "name": "uuid",
             "value": uuid
         }
 
-        # only one entity should be returnd
         data = self.database.get(where=where)
 
+        # only one entity should be returnd
         if len(data) == 0:
-            return False
+            return None
         else:
-            return True
+            return data[0]

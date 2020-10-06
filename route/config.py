@@ -18,6 +18,7 @@ class Config(Resource):
     def __init__(self):
         """
 
+            self.path: config path
             self.config: system config
 
         """

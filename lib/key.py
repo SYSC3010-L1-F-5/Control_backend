@@ -84,4 +84,3 @@ class Key:
 
         """
         return secrets.token_urlsafe(32)
-

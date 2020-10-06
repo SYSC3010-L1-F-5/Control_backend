@@ -15,7 +15,7 @@ import time
 from route.device import Device
 
 from route.config import Config
-CONFIG = Config().get()
+CONFIG = Config().fetch()
 
 EMAIL = {
     "user": "5bfd66678de399dab6322c0cfb0f972b",
@@ -114,22 +114,22 @@ class Email:
 
         """
 
-        settings = Device().settings(key)
+        details = Device().details(key)
         template = "{type} {name} at {ip}:{port} located in {zone} informs that"
         type = None
-        zone = settings["zone"]
-        name = settings["name"]
-        ip = settings["ip"]
-        port = settings["port"]
-        if settings["type"] == "camera":
+        zone = details["zone"]
+        name = details["name"]
+        ip = details["ip"]
+        port = details["port"]
+        if details["type"] == "camera":
             type = "Camera"
-        elif settings["type"] == "temperature":
+        elif details["type"] == "temperature":
             type = "Temperature sensor"
-        elif settings["type"] == "humidity":
+        elif details["type"] == "humidity":
             type = "Humidity sensor"
-        elif settings["type"] == "pressure":
+        elif details["type"] == "pressure":
             type = "Pressure sensor"
-        elif settings["type"] == "motion":
+        elif details["type"] == "motion":
             type = "Motion sensor"
         return template.format(type=type, name=name, ip=ip, port=port, zone=zone)
 

@@ -60,7 +60,7 @@ class Device(Resource):
                 key: device key
 
             Returns:
-                json: device list/device settings
+                json: device list/device details
                 int: status code
 
         """
@@ -75,11 +75,11 @@ class Device(Resource):
 
             return self.database.get(order=order), 200
         
-        # /device/get/<key>
+        # /device/<key>
         if request.path.split("/")[2] == key:
-            settings = self.settings(key)
-            if settings is not None:
-                return settings, 200
+            details = self.details(key)
+            if details is not None:
+                return details, 200
             else:
                 return "Device not found", 404
         
@@ -210,24 +210,24 @@ class Device(Resource):
 
         """
 
-        data = self.settings(key)
+        data = self.details(key)
 
         if data is None:
             return False
         else:
             return True
 
-    def settings(self, key):
+    def details(self, key):
         """
 
-            Return device settings
+            Return device details
 
             Args:
                 self: access global variables
                 key: device key
             
             Returns:
-                json: device settings
+                json: device details
 
         """
 
