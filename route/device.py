@@ -37,14 +37,15 @@ class Device(Resource):
             self.type: device type
             self.name: device name
             self.key: access key
+            self.database: connect to devices table in the databse
 
         """
-        self.ip = None # device ip
-        self.port = None # device port
-        self.zone = None # device zone
-        self.type = None # device type
-        self.name = None # device name
-        self.key = None # access key
+        self.ip = None
+        self.port = None
+        self.zone = None
+        self.type = None
+        self.name = None
+        self.key = None
         self.database = Database("devices")
 
     @MESSAGE.response
@@ -66,7 +67,13 @@ class Device(Resource):
 
         # /deivces
         if request.path.split("/")[1] == "devices":
-            return self.database.get(), 200
+
+            order = {
+                    "name": "pulse",
+                    "value": "DESC"
+                }
+
+            return self.database.get(order=order), 200
         
         # /device/get/<key>
         if request.path.split("/")[2] == key:

@@ -3,7 +3,6 @@
     All databse related methods will be here
 
     TODO:
-        - clean up
         - handle exceptions
 
     Author: Haoyu Xu
@@ -11,71 +10,112 @@
 """
 
 import os
-import json
 import sqlite3
 import pathlib
 import time
 
 from lib.configs import Configs
-configs = Configs().get()
+CONFIG = Configs().get()
 
-tables = {
+TABLES = {
     "devices": {
-        "ip": "text",
-        "port": "numeric",
-        "zone": "text",
-        "type": "text",
-        "name": "text",
-        "key": "text",
-        "pulse": "numeric"
+        "fields": {
+            "ip": "text",
+            "port": "numeric",
+            "zone": "text",
+            "type": "text",
+            "name": "text",
+            "key": "text",
+            "pulse": "numeric"
+        },
+        "verifications": [
+            "ip",
+            "port",
+            "zone",
+            "type",
+            "name"
+        ]
     },
-    "users": { # TODO: not in SYSC 3010 project scope
-        "username": "text",
-        "password": "text",
-        "email": "text",
-        "type": "text"
+    "users": {
+        "fields": { # TODO: not in SYSC 3010 project scope
+            "username": "text",
+            "password": "text",
+            "email": "text",
+            "type": "text"
+        },
+        "verifications": [
+            "username"
+        ]
     },
     "events": {
-        "uuid": "text",
-        "device": "text",
-        "time": "numeric",
-        "type": "text",
-        "details": "text",
-        "hidden": "boolean" # 0 => false, 1 => true
+        "fields":{
+            "uuid": "text",
+            "device": "text",
+            "time": "numeric",
+            "type": "text",
+            "details": "text",
+            "hidden": "boolean" # 0 => false, 1 => true
+        },
+        "verifications": [
+            "device",
+            "time",
+            "type",
+            "details"
+        ]
     # },
-    # "logs": { # TODO: not in SYSC 3010 project scope
-    #     "time": "numeric", # 1601330980228
-    #     "user": "text", # admin
-    #     "action": "text", # delete 
-    #     "type": "text", # device
-    #     "which": "text" # Na5adCHPj7p4X35Od_hQ8oQkDq8uImV_yGfPQ_3--UU
-    # }
-    # "notifications": { # TODO: not in SYSC 3010 project scope
-    #     "type": "text", # temperature
-    #     "upper": "numeric", # 30
-    #     "lower": "numeric", # 20
+    # "logs": {
+    #     "fields": { # TODO: not in SYSC 3010 project scope
+    #         "time": "numeric", # 1601330980228
+    #         "user": "text", # admin
+    #         "action": "text", # delete 
+    #         "type": "text", # device
+    #         "which": "text" # Na5adCHPj7p4X35Od_hQ8oQkDq8uImV_yGfPQ_3--UU
+    #     },
+    #     "verifications": [
+    #         "time",
+    #         "user",
+    #         "action",
+    #         "type",
+    #         "which"
+    #     ]
+    # },
+    # "notifications": {
+    #     "fields": { # TODO: not in SYSC 3010 project scope
+    #         "type": "text", # temperature
+    #         "upper": "numeric", # 30
+    #         "lower": "numeric", # 20
+    #     },
+    #     "verifications": [
+    #         "type",
+    #         "upper",
+    #         "lower"
+    #     ]
     }
 }
 
 class Database:
 
     def __init__(self, table=None):
-        self.database = None # database filename
-        self.table = table # the table to be access
-        self.connection = None # database connection
-        self.path = None # database path
+        """
+
+            self.database: database filename
+            self.table: the table to be access
+            self.connection: database connection
+            self.path: database path
+            self.cursor: databse cursor
+
+        """
+
+        self.database = None
+        self.table = table
+        self.connection = None
+        self.path = None
         self.cursor = None
 
     def create(self):
         """
 
             This method creates a database files
-
-            TODO:
-                - handle exceptions
-                - if database exists, verify tables:
-                    - successful: pass
-                    - fail: backup the old one and create a new one
 
             Args:
                 self: accessing global parameters
@@ -86,10 +126,7 @@ class Database:
         """
         status = False
 
-        if configs["database"]["name"].endswith(".db") is False:
-            self.database = configs["database"]["name"] + ".db"
-        else:
-            self.database = configs["database"]["name"]
+        self.__set_db_name()
 
         self.path = os.path.join(pathlib.Path(__file__).parent.absolute(), "..", self.database)
 
@@ -99,18 +136,14 @@ class Database:
 
         return status
 
-    def insert(self, data, table=None):
+    def insert(self, data):
         """
 
             This method inserts data to databse table
 
-            TODO:
-                - handle exceptions
-
             Args:
                 self: accessing global parameters
                 data: the data
-                table: wheere the data is stored
 
             Returns:
                 bool: True if successful, False otherwise
@@ -118,56 +151,35 @@ class Database:
         """
         status = False
         
-        if self.table is None and table is None:
-            return False
-        elif self.table is None:
-            self.table = table
-        
         self.__connect_db()
 
         is_exists = self.__verify_data("insert", data)
 
-        if self.table == "devices" and is_exists is False:
-            self.cursor.execute('''insert into devices values (?, ?, ?, ?, ?, ?, ?)''', (data["ip"], data["port"], data["zone"], data["type"], data["name"], data["key"], data["pulse"]))
-            self.connection.commit()
-            status = True
-
-        if self.table == "users" and is_exists is False:
-            self.cursor.execute('''insert into users values (?, ?, ?, ?)''', (data["username"], data["password"], data["email"], data["type"]))
-            self.connection.commit()
-            status = True
-
-        if self.table == "events" and is_exists is False:
-            self.cursor.execute('''insert into events values (?, ?, ?, ?, ?, ?)''', (data["uuid"], data["device"], data["time"], data["type"], data["details"], data["hidden"]))
+        if is_exists is False:
+            cols = ', '.join('"{}"'.format(col) for col in data.keys())
+            values = ', '.join(':{}'.format(col) for col in data.keys())
+            command = 'INSERT INTO "{table}" ({cols}) VALUES ({values})'.format(table=self.table, cols=cols, values=values)
+            self.cursor.execute(command, data)
             self.connection.commit()
             status = True
 
         self.connection.close()
         return status
 
-    def remove(self, data, table=None):
+    def remove(self, data):
         """
 
             This method deletes data in databse table
 
-            TODO:
-                - handle exceptions
-
             Args:
                 self: accessing global parameters
                 data: the data
-                table: wheere the data is stored
 
             Returns:
                 bool: True if successful, False otherwise
 
         """
         status = False
-        
-        if self.table is None and table is None:
-            return False
-        elif self.table is None:
-            self.table = table
         
         self.__connect_db()
 
@@ -187,15 +199,13 @@ class Database:
         status = self.__delete_row(where=where)
 
         self.connection.close()
+
         return status
 
-    def get(self, table=None, where=None, order=None):
+    def get(self, where=None, order=None):
         """
 
             This method get data from databse table
-
-            TODO:
-                - handle exceptions
 
             Args:
                 self: accessing global parameters
@@ -216,52 +226,33 @@ class Database:
                         list with specific table data
 
         """
-
-        if self.table is None and table is None:
-            return False
-        elif self.table is None:
-            self.table = table
         
         status = self.__connect_db()
         data = []
 
         if status is True:
             self.__select_table(table=self.table, where=where, order=order)
-            data = [dict((self.cursor.description[i][0], value) \
-               for i, value in enumerate(row)) for row in self.cursor.fetchall()]
+            data = self.__fetch_data()
 
         #close the connection
         self.connection.close()
 
         return data
 
-    def update(self, data, table=None):
+    def update(self, data):
         """
 
             This method update data in databse table
 
-            TODO:
-                - handle exceptions
-
             Args:
                 self: accessing global parameters
-                table: wheere the data is stored
-                where: select specific row field in
-                        {
-                            "name": table_name,
-                            "value": value
-                        }
+                data: the data to be updated
 
             Returns:
                 list: empty list if the operation failed
                         list with specific table data
 
         """
-
-        if self.table is None and table is None:
-            return False
-        elif self.table is None:
-            self.table = table
         
         status = self.__connect_db()
 
@@ -307,9 +298,6 @@ class Database:
             This method checks database, if verify databse failed
             then backup and create a new db
 
-            TODO:
-                - handle exceptions
-
             Args:
                 self: accessing global parameters
 
@@ -334,10 +322,6 @@ class Database:
         """
 
             This method verifies tables
-
-            TODO:
-                - handle exceptions
-
             Args:
                 self: accessing global parameters
 
@@ -346,27 +330,12 @@ class Database:
 
         """
 
-        status = False
-
-        self.__select_table(table="devices")
-        names = [description[0] for description in self.cursor.description]
-        if names != ["ip", "port", "zone", "type", "name", "key", "pulse"]:
-            # need some clean up here
-            return status
-        
-        self.__select_table(table="users")
-        names = [description[0] for description in self.cursor.description]
-        if names != ["username", "password", "email", "type"]:
-            # need some clean up here
-            return status
-
-        self.__select_table(table="events")
-        names = [description[0] for description in self.cursor.description]
-        if names != ["uuid", "device", "time", "type", "details", "hidden"]:
-            # need some clean up here
-            return status
-        
-        status = True
+        for key in TABLES:
+            self.__select_table(table=key)
+            db_fields = [description[0] for description in self.cursor.description]
+            table_fields = [value for value in TABLES[key]["fields"]]
+            if db_fields != table_fields:
+                return False
         
         return True
 
@@ -374,9 +343,6 @@ class Database:
         """
 
             This helper method creates a database files
-
-            TODO:
-                - handle exceptions
 
             Args:
                 self: accessing global parameters
@@ -405,9 +371,6 @@ class Database:
 
             This method connects db
 
-            TODO:
-                - handle exceptions
-
             Args:
                 self: accessing global parameters
 
@@ -415,12 +378,7 @@ class Database:
                 bool: True if successful, False otherwise
 
         """
-        status = False
-
-        if configs["database"]["name"].endswith(".db") is False:
-            self.database = configs["database"]["name"] + ".db"
-        else:
-            self.database = configs["database"]["name"]
+        self.__set_db_name()
 
         if self.path is None:
             self.path = os.path.join(pathlib.Path(__file__).parent.absolute(), "..", self.database)
@@ -437,9 +395,6 @@ class Database:
 
             This method initiates tables
 
-            TODO:
-                - handle exceptions
-
             Args:
                 self: accessing global parameters
 
@@ -450,77 +405,21 @@ class Database:
 
         status = False
 
-        status = self.__create_table(name="devices")
-        status = self.__create_table(name="users")
-        status = self.__create_table(name="events")
+        for table_name, table_fields in TABLES.items():
 
-        return status
-
-    def __create_table(self, name):
-        """
-
-            This method creates table
-
-            TODO:
-                - handle exceptions
-                - add pulse to devices table
-                - add events table
-            
-            Args:
-                self: accessing global parameters
-                name: table name
-            
-            Returns:
-                bool: True if successful, False otherwise
-
-        """
-
-        status = False
-
-        if name == "devices":
-            self.cursor.execute(""" CREATE TABLE IF NOT EXISTS devices (
-                                ip text,
-                                port numeric,
-                                zone text,
-                                type text,
-                                name text,
-                                key text,
-                                pulse numeric
-                            ); """)
+            fields = ", ".join("{name} {type}".format(name=key, type=value) for key, value in TABLES[table_name]["fields"].items())
+        
+            template = " CREATE TABLE IF NOT EXISTS {table_name} ({fields}); ".format(table_name=table_name, fields=fields)
+            self.cursor.execute(template)
             self.connection.commit()
             status = True
-        elif name == "users":
-            self.cursor.execute(""" CREATE TABLE IF NOT EXISTS users (
-                                username text,
-                                password text,
-                                email text,
-                                type text
-                            ); """)
-            self.connection.commit()
-            status = True
-        elif name == "events":
-            self.cursor.execute(""" CREATE TABLE IF NOT EXISTS events (
-                                uuid text,
-                                device text,
-                                time numeric,
-                                type text,
-                                details text,
-                                hidden boolean
-                            ); """)
-            self.connection.commit()
-            status = True
-        else:
-            status = False
-
+        
         return status
 
     def __select_table(self, table, where=None, order=None):
         """
 
             This method selects table
-
-            TODO:
-                - handle exceptions
             
             Args:
                 self: accessing global parameters
@@ -535,9 +434,6 @@ class Database:
                             "name": field_name,
                             "value": value, ASC | DESC
                         }
-            
-            Returns:
-                string: return table data
 
         """
         
@@ -554,9 +450,6 @@ class Database:
         """
 
             This method verify if data exists in the table
-
-            TODO:
-                - handle exceptions
             
             Args:
                 self: accessing global parameters
@@ -568,33 +461,30 @@ class Database:
                         does not exist => False
 
         """
+        flags = []
         flag = False
 
         if mode == "insert":
             self.__select_table(table=self.table)
             for row in self.cursor:
-                if self.table == "devices":
-                    if row["ip"] == data["ip"] and row["port"] == data["port"] and row["zone"] == data["zone"] and row["type"] == data["type"] and row["name"] == data["name"]:
-                        flag = True
-                        break
-                elif self.table == "users":
-                    if row["username"] == data["username"]:
-                        flag = True
-                        break
-                elif self.table == "events":
-                    if row["device"] == data["device"] and row["time"] == data["time"] and row["details"] == data["details"] and row["type"] == data["type"]:
-                        flag = True
-                        break
-
+                for key in TABLES[self.table]["verifications"]:
+                    if row[key] == data[key]:
+                        flags.append(True)
+                    else:
+                        flags.append(False)
+                
+                if False not in flags:
+                    flag = True
+                    break
+                else:
+                    flags = []
+    
         return flag
 
-    def __delete_row(self, where, table=None):
+    def __delete_row(self, where):
         """
 
             This method delete data from in the table
-
-            TODO:
-                - handle exceptions
             
             Args:
                 self: accessing global parameters
@@ -603,18 +493,15 @@ class Database:
                             "name": table_name,
                             "value": value
                         }
-                table: table name
             
             Returns:
                 bool: True if successful, False otherwise 
 
         """
-        flag = False
 
         # should have only one entity
-        self.__select_table(self.table, where)
-        data = [dict((self.cursor.description[i][0], value) \
-               for i, value in enumerate(row)) for row in self.cursor.fetchall()]
+        self.__select_table(table=self.table, where=where)
+        data = self.__fetch_data()
 
         if len(data) == 0:
             return False
@@ -624,13 +511,10 @@ class Database:
         
         return True
 
-    def __update_row(self, where, set, table=None):
+    def __update_row(self, where, set):
         """
 
             This method update data from in the table
-
-            TODO:
-                - handle exceptions
             
             Args:
                 self: accessing global parameters
@@ -644,18 +528,15 @@ class Database:
                             "name": field_name,
                             "value": value
                         }
-                table: table name
             
             Returns:
                 bool: True if successful, False otherwise 
 
         """
-        flag = False
 
         # should have only one entity
-        self.__select_table(self.table, where)
-        data = [dict((self.cursor.description[i][0], value) \
-               for i, value in enumerate(row)) for row in self.cursor.fetchall()]
+        self.__select_table(table=self.table, where=where)
+        data = self.__fetch_data()
 
         if len(data) == 0:
             return False
@@ -665,3 +546,34 @@ class Database:
         self.connection.commit()
 
         return True
+
+    def __set_db_name(self):
+        """
+
+            This method sets the database name
+
+            Args:
+                self: accessing global parameters
+
+        """
+
+        if CONFIG["database"]["name"].endswith(".db") is False:
+            self.database = CONFIG["database"]["name"] + ".db"
+        else:
+            self.database = CONFIG["database"]["name"]
+
+    def __fetch_data(self):
+        """
+
+            This method fetches data from a specific table
+
+            Args:
+                self: accessing global parameters
+
+            Returns:
+                list: a list of data
+
+        """
+
+        return [dict((self.cursor.description[i][0], value) \
+               for i, value in enumerate(row)) for row in self.cursor.fetchall()]

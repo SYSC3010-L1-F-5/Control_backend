@@ -86,10 +86,10 @@ class Event(Resource):
 
         order = {
                     "name": "time",
-                    "value": "ASC"
+                    "value": "DESC"
                 }
 
-        return self.database.get(), 200
+        return self.database.get(order=order), 200
 
     @MESSAGE.response
     def post(self):
