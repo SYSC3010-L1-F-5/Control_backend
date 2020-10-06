@@ -97,8 +97,10 @@ in string or numeric type
 
 ### `/device/add`
 
+Used by **frontend**, the key needs to be entered to data collector
+
 ``` shell
-$ curl -X POST http://localhost:5000/device/add -d "ip=10.0.0.1&port=90&zone=kitchen&type=camera&name=test12"
+$ curl -X POST http://10.1.0.1:5000/device/add -d "ip=10.0.0.1&port=90&zone=kitchen&type=camera&name=test12"
 {
     "message": "Ee_M7mT9wuoeOn8I1GYtC6NQ5EgXyKLZ6tGbyiTA_b0",
     "status_code": 200,
@@ -108,8 +110,10 @@ $ curl -X POST http://localhost:5000/device/add -d "ip=10.0.0.1&port=90&zone=kit
 
 ### `/device/delete`
 
+Used by **frontend**, to delete a data collector
+
 ``` shell
-$ curl -X DELETE http://localhost:5000/device/delete -d "key=Ee_M7mT9wuoeOn8I1GYtC6NQ5EgXyKLZ6tGbyiTA_b0"
+$ curl -X DELETE http://10.1.0.1:5000/device/delete -d "key=Ee_M7mT9wuoeOn8I1GYtC6NQ5EgXyKLZ6tGbyiTA_b0"
 {
     "message": "Device is deleted",
     "status_code": 200,
@@ -119,8 +123,10 @@ $ curl -X DELETE http://localhost:5000/device/delete -d "key=Ee_M7mT9wuoeOn8I1GY
 
 ### `/pulse`
 
+Used by **data collector**, update it status to prevent unexpected offline
+
 ``` shell
-$ curl -X PUT http://localhost:5000/pulse -d "who=Ee_M7mT9wuoeOn8I1GYtC6NQ5EgXyKLZ6tGbyiTA_b0"
+$ curl -X PUT http://10.1.0.1:5000/pulse -d "who=Ee_M7mT9wuoeOn8I1GYtC6NQ5EgXyKLZ6tGbyiTA_b0"
 {
     "message": "Pulsed",
     "status_code": 200,
@@ -130,8 +136,10 @@ $ curl -X PUT http://localhost:5000/pulse -d "who=Ee_M7mT9wuoeOn8I1GYtC6NQ5EgXyK
 
 ### `/event/add`
 
+Used by **data collector**, add an event to the system when a new event is triggered
+
 ``` shell
-$ curl -X POST http://localhost:5000/event/add -d "who=Ee_M7mT9wuoeOn8I1GYtC6NQ5EgXyKLZ6tGbyiTA_b0&what={\"type\":\"motion_detected\",\"data\":\"https://example.com/123\"}&when=1501240210990"
+$ curl -X POST http://10.1.0.1:5000/event/add -d "who=Ee_M7mT9wuoeOn8I1GYtC6NQ5EgXyKLZ6tGbyiTA_b0&what={\"type\":\"motion_detected\",\"data\":\"https://example.com/123\"}&when=1501240210990"
 {
     "message": "67a87a35-5508-4dba-9b40-d810a9af3992",
     "status_code": 200,
@@ -141,8 +149,10 @@ $ curl -X POST http://localhost:5000/event/add -d "who=Ee_M7mT9wuoeOn8I1GYtC6NQ5
 
 ### `/event/update`
 
+Used by **data collector** or **frontend**, update an existing event
+
 ``` shell
-$ curl -X PUT http://localhost:5000/event/update -d "which=67a87a35-5508-4dba-9b40-d810a9af3992&what=https://example.org&hidden=1"
+$ curl -X PUT http://10.1.0.1:5000/event/update -d "which=67a87a35-5508-4dba-9b40-d810a9af3992&what=https://example.org&hidden=1"
 {
     "message": "Updated",
     "status_code": 200,
@@ -152,8 +162,10 @@ $ curl -X PUT http://localhost:5000/event/update -d "which=67a87a35-5508-4dba-9b
 
 ### `/event/delete`
 
+Used by **data collector** or **frontend**, delete an existing event
+
 ``` shell
-$ curl -X DELETE http://localhost:5000/event/delete -d "which=67a87a35-5508-4dba-9b40-d810a9af3992"
+$ curl -X DELETE http://10.1.0.1:5000/event/delete -d "which=67a87a35-5508-4dba-9b40-d810a9af3992"
 {
     "message": "Event is deleted",
     "status_code": 200,
@@ -163,8 +175,10 @@ $ curl -X DELETE http://localhost:5000/event/delete -d "which=67a87a35-5508-4dba
 
 ### `/event/clear`
 
+Used by **frontend**, clear plugin status on the central system
+
 ``` shell
-$ curl -X PUT http://localhost:5000/event/clear
+$ curl -X PUT http://10.1.0.1:5000/event/clear
 {
     "message": "OK",
     "status_code": 200,
@@ -173,8 +187,11 @@ $ curl -X PUT http://localhost:5000/event/clear
 ```
 
 ### `/events`
+
+Used by **frontend**, receive a list of events 
+
 ``` shell
-$ curl -X GET http://localhost:5000/events
+$ curl -X GET http://10.1.0.1:5000/events
 {
     "message": [
         {
@@ -249,8 +266,10 @@ $ curl -X GET http://localhost:5000/events
 
 ### `/devices`
 
+Used by **frontend**, receive a list of data collectors
+
 ``` shell
-$ curl -X GET http://localhost:5000/devices
+$ curl -X GET http://10.1.0.1:5000/devices
 {
     "message": [
         {
