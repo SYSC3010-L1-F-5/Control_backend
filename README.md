@@ -28,7 +28,7 @@ Author: Haoyu Xu (haoyu.xu@carleton.ca)
 
 - `/device/delete`: `DELETE`, delete a device from system, details are sent by `application/x-www-form-urlencoded` using `key=device_access_key`. `message` will be string type, `Device is deleted` and `200` is successful, `Device not found` and `404` otherwise, working
 
-- `/device/<key>`: `GET`, get a specific data collecotr info from system. `message` will be json type or `null`, working
+- `/device/<key>`: `GET`, get a specific data collecotr info from system. `message` will be json type or `null`, `200` is successful, `404` otherwise, working
 
 - `/devices`: `GET`, provides all registered devices to the frontend, working
 

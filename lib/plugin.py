@@ -6,19 +6,39 @@
 """
 
 from lib.configs import Configs
-config = Configs().get()
+CONFIG = Configs().get()
 
-if config["plugins"]["SenseHAT"] is True:
+if CONFIG["plugins"]["SenseHAT"] is True:
     from plugins.sensehat import SenseHAT
-    plugin = SenseHAT(config)
+    PLUGIN = SenseHAT(CONFIG)
 
 class Plugin:
 
     def __init__(self):
-        self.debug = False
+        return
 
     def on(self, event=None):
-        plugin.on(event)
+        """
+        
+            Set the status of enabled plugin to "on"
+
+            Args:
+                self: access global variables
+                event: an event that triggers the plugin
+        
+        """
+        
+        PLUGIN.on(event)
 
     def off(self, event=None):
-        plugin.off()
+        """
+        
+            Set the status of enabled plugin to "off"
+
+            Args:
+                self: access global variables
+                event: an event that triggers the plugin
+        
+        """
+
+        PLUGIN.off(event)

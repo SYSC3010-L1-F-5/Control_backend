@@ -22,13 +22,23 @@ from lib.key import Key
 from lib.database import Database
 
 from lib.message import Message
-message = Message()
+MESSAGE = Message()
 
-parser = reqparse.RequestParser()
+PARASER = reqparse.RequestParser()
 
 class Device(Resource):
     
     def __init__(self):
+        """
+
+            self.ip: device ip
+            self.port: device port
+            self.zone: device zone
+            self.type: device type
+            self.name: device name
+            self.key: access key
+
+        """
         self.ip = None # device ip
         self.port = None # device port
         self.zone = None # device zone
@@ -37,33 +47,38 @@ class Device(Resource):
         self.key = None # access key
         self.database = Database("devices")
 
-    @message.response
+    @MESSAGE.response
     def get(self, key=None):
         """
 
-            This method provides all devices infomation 
-            to frontend requires user access key
+            This method provides all devices/specific device infomation 
+            to frontend
 
             Args:
                 self: access global variables
+                key: device key
 
             Returns:
-                list: device list
+                json: device list/device settings
                 int: status code
 
         """
-        print(request.path)
+
         # /deivces
         if request.path.split("/")[1] == "devices":
             return self.database.get(), 200
         
         # /device/get/<key>
         if request.path.split("/")[2] == key:
-            return self.settings(key), 200
+            settings = self.settings(key)
+            if settings is not None:
+                return settings, 200
+            else:
+                return "Device not found", 404
         
         return "", 404
 
-    @message.response
+    @MESSAGE.response
     def post(self):
         """
         
@@ -81,12 +96,12 @@ class Device(Resource):
         if request.path.split("/")[2] != "add":
             return "", 404
         
-        parser.add_argument('ip', type=str, help='Device IP')
-        parser.add_argument('port', type=int, help='Device port')
-        parser.add_argument('zone', type=str, help='Device Zone')
-        parser.add_argument('type', type=str, help='Device Type')
-        parser.add_argument('name', type=str, help='Device Name')
-        args = parser.parse_args(strict=True)
+        PARASER.add_argument('ip', type=str, help='Device IP')
+        PARASER.add_argument('port', type=int, help='Device port')
+        PARASER.add_argument('zone', type=str, help='Device Zone')
+        PARASER.add_argument('type', type=str, help='Device Type')
+        PARASER.add_argument('name', type=str, help='Device Name')
+        args = PARASER.parse_args(strict=True)
         
         self.ip = args["ip"]
         self.port = args["port"]
@@ -113,7 +128,7 @@ class Device(Resource):
         else:
             return "Device exists", 403 
 
-    @message.response
+    @MESSAGE.response
     def delete(self):
         """
         
@@ -131,8 +146,8 @@ class Device(Resource):
         if request.path.split("/")[2] != "delete":
             return "", 404
 
-        parser.add_argument('key', type=str, help='Device Key')
-        args = parser.parse_args(strict=True)
+        PARASER.add_argument('key', type=str, help='Device Key')
+        args = PARASER.parse_args(strict=True)
 
         self.key = args["key"]
         status = self.database.remove(self.key)
@@ -143,7 +158,7 @@ class Device(Resource):
             return "Device not found", 404
             
 
-    @message.response
+    @MESSAGE.response
     def put(self):
         """
         
@@ -162,8 +177,8 @@ class Device(Resource):
         if request.path.split("/")[1] != "pulse":
             return "", 404
 
-        parser.add_argument('who', type=str, help='Device Key')
-        args = parser.parse_args(strict=True)
+        PARASER.add_argument('who', type=str, help='Device Key')
+        args = PARASER.parse_args(strict=True)
 
         self.key = args["who"]
         
@@ -183,7 +198,8 @@ class Device(Resource):
                 self: access global variables
                 key: device key
             
-            Returns: True if exists, False otherwise
+            Returns: 
+                bool: True if exists, False otherwise
 
         """
 

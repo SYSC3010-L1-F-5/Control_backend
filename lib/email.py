@@ -12,14 +12,12 @@ import requests
 import json
 import time
 
-from jinja2.environment import Template
-
 from route.device import Device
 
 from .configs import Configs
-config = Configs().get()
+CONFIG = Configs().get()
 
-email_provider = {
+EMAIL = {
     "user": "5bfd66678de399dab6322c0cfb0f972b",
     "pass": "cc293aefb02f9e5d3b53264f124810a2",
     "url": "https://api.mailjet.com/v3.1/send",
@@ -47,8 +45,13 @@ email_provider = {
 
 class Email:
     
-    def __init__(self):
-        self.email = config["email"]
+    def __init__(self, email=None):
+        """
+
+            self.email: user to recieve email
+
+        """
+        self.email = CONFIG["email"]
 
     def send(self, event):
         """
@@ -65,9 +68,9 @@ class Email:
         """
         content = "{device} {event} at {time}.Raw json: {raw}".format(device=self.__get_device(event["device"]), event=self.__get_event(event["type"]), time=self.__get_time(event["time"]), raw=event)
 
-        template = json.loads(email_provider["template"].format(user_email=self.email, username="Admin", subject=self.__get_event(event["type"]), content=content))
+        template = json.loads(EMAIL["template"].format(user_email=self.email, username="Admin", subject=self.__get_event(event["type"]), content=content))
 
-        response = requests.post(email_provider["url"], json=template, headers={"'Content-Type":"application/json"}, auth=requests.auth.HTTPBasicAuth(email_provider["user"], email_provider["pass"]))
+        response = requests.post(EMAIL["url"], json=template, headers={"'Content-Type":"application/json"}, auth=requests.auth.HTTPBasicAuth(EMAIL["user"], EMAIL["pass"]))
 
         return response.status_code
         
@@ -85,6 +88,7 @@ class Email:
                 str: a string related to event type
 
         """
+        
         if type == ("motion_detected" or "motion"):
             return "a motion has been detected"
         elif type == "temperature":
@@ -108,6 +112,7 @@ class Email:
                 str: a string related to the device
 
         """
+
         settings = Device().settings(key)
         template = "{type} {name} at {ip}:{port} located in {zone} informs that"
         type = None

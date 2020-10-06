@@ -11,4 +11,4 @@
 class Log:
     
     def __init__(self):
-        self.debug = false
+        self.debug = False

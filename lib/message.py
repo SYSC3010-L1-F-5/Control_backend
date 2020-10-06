@@ -2,6 +2,7 @@
 
     This class handles the messages send to the frontend, 
     logging, error and other devices
+
     Author: Haoyu Xu
 
     200: HTTP OK
@@ -13,11 +14,7 @@
 from functools import wraps
 import time
 
-class Message:
-
-    def __init__(self):
-        self.app = None
-        self.messages = {
+MESSAGES = {
             "200": "HTTP 200 OK",
             "401": "HTTP Unauthorized",
             "403": "Forbidden",
@@ -25,12 +22,25 @@ class Message:
             "500": "Internal Server Error"
         }
 
+class Message:
+
+    def __init__(self):
+        return
+
     def response(self, func):
         """
         
             Changes the message to fit the structure
+
+            Args:
+                self: access global variables
+                func: decoration call
+            
+            Returns:
+                json: message to response
         
         """
+
         @wraps(func)
         def wrapper(*args, **kwargs):
             original, status_code = func(*args, **kwargs)
@@ -47,7 +57,15 @@ class Message:
 
             Response proper error formate
 
+            Args:
+                self: access global variables
+                status_code: status code
+            
+            Returns:
+                str: error message
+
         """
+
         result = {
             "message": self.message(status_code, ""),
             "status_code": status_code,
@@ -56,7 +74,21 @@ class Message:
         return result
 
     def message(self, code, message):
+        """
+
+            Returns proper message body
+
+            Args:
+                self: access global variables
+                code: status code
+                message: to override message body
+            
+            Returns:
+                str: new message body
+
+        """
+        
         if message == "":
-            message = self.messages[str(code)]
+            message = MESSAGES[str(code)]
         return message
             

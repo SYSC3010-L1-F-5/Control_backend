@@ -10,12 +10,14 @@
 """
 
 from flask_restful import Resource
-from .config import Config
+
+from lib.configs import Configs
+CONFIG = Configs().get()
 
 class User(Resource):
 
     def __init__(self):
-        self.config = Config()
+        return
     
     def get(self):
         return self.config.get()["users"]

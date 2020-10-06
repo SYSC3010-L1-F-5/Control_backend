@@ -32,22 +32,32 @@ from lib.database import Database
 from lib.key import Key
 
 from lib.email import Email
-email = Email()
+EMAIL = Email()
 
 from lib.message import Message
-message = Message()
+MESSAGE = Message()
 
 from .device import Device
-device = Device()
+DEVICE = Device()
 
 from lib.plugin import Plugin
-plugin = Plugin()
+PLUGIN = Plugin()
 
-parser = reqparse.RequestParser()
+PARASER = reqparse.RequestParser()
 
 class Event(Resource):
 
     def __init__(self):
+        """
+
+            self.database: connects to event table in the database
+            self.who: device key
+            self.what: event details
+            self.when: unix timestamp
+            self.uuid: evnet uuid
+            self.hidden: 0 for not hidden, 1 for hidden
+
+        """
         self.database = Database("events")
         self.who = None
         self.what = None
@@ -55,12 +65,15 @@ class Event(Resource):
         self.uuid = None
         self.hidden = 0
 
-    @message.response
+    @MESSAGE.response
     def get(self):
         """
 
             This method provides all event details
-            to frontend requires user access key
+            to frontend in ascending order
+
+            Args:
+                self: access global variables
 
             Returns:
                 list: event list
@@ -70,13 +83,15 @@ class Event(Resource):
 
         if request.path.split("/")[1] != "events":
             return "", 404
+
         order = {
                     "name": "time",
                     "value": "ASC"
                 }
+
         return self.database.get(), 200
 
-    @message.response
+    @MESSAGE.response
     def post(self):
         """
         
@@ -95,16 +110,16 @@ class Event(Resource):
         if request.path.split("/")[2] != "add":
             return "", 404
 
-        parser.add_argument('who', type=str, help='Device Access Key')
-        parser.add_argument('what', type=str, help='Event details in json')
-        parser.add_argument('when', type=int, help='Unix Timestamp')
-        args = parser.parse_args(strict=True)
+        PARASER.add_argument('who', type=str, help='Device Access Key')
+        PARASER.add_argument('what', type=str, help='Event details in json')
+        PARASER.add_argument('when', type=int, help='Unix Timestamp')
+        args = PARASER.parse_args(strict=True)
 
         self.who = args["who"]
         self.what = json.loads(args["what"])
         self.when = args["when"]
         self.uuid = Key().uuid()
-        is_exists = device.is_exists(self.who)
+        is_exists = DEVICE.is_exists(self.who)
 
         if is_exists is False:
             return "Who are you?", 404
@@ -121,13 +136,13 @@ class Event(Resource):
         flag = self.database.insert(data=event)
 
         if flag is True:
-            plugin.on(event=event)
-            email.send(event=event)
+            PLUGIN.on(event=event)
+            EMAIL.send(event=event)
             return self.uuid, 200
         else:
             return "Duplicated event", 403
 
-    @message.response
+    @MESSAGE.response
     def delete(self):
         """
         
@@ -144,8 +159,8 @@ class Event(Resource):
         if request.path.split("/")[2] != "delete":
             return "", 404
 
-        parser.add_argument('which', type=str, help='Event UUID')
-        args = parser.parse_args(strict=True)
+        PARASER.add_argument('which', type=str, help='Event UUID')
+        args = PARASER.parse_args(strict=True)
 
         self.uuid = args["which"]
         status = self.database.remove(self.uuid)
@@ -155,7 +170,7 @@ class Event(Resource):
         else:
             return "Event not found", 404
 
-    @message.response
+    @MESSAGE.response
     def put(self):
         """
         
@@ -174,14 +189,14 @@ class Event(Resource):
         if path != "update" and path != "clear":
             return "", 404
 
-        parser.add_argument('which', type=str, help='Event UUID')
-        parser.add_argument('what', type=str, help='Event details')
-        parser.add_argument('hidden', type=int, help='Hide event')
-        args = parser.parse_args(strict=True)
+        PARASER.add_argument('which', type=str, help='Event UUID')
+        PARASER.add_argument('what', type=str, help='Event details')
+        PARASER.add_argument('hidden', type=int, help='Hide event')
+        args = PARASER.parse_args(strict=True)
 
         # /event/clear
         if path == "clear":
-            plugin.off()
+            PLUGIN.off()
             return "OK", 200
 
         # /event/update
@@ -218,7 +233,8 @@ class Event(Resource):
                 self: access global variables
                 uuid: event uuid
             
-            Returns: True if exists, False otherwise
+            Returns: 
+                bool: True if exists, False otherwise
 
         """
 
@@ -234,5 +250,3 @@ class Event(Resource):
             return False
         else:
             return True
-
-    
