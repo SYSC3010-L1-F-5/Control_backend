@@ -6,7 +6,7 @@
     delete can only be access by key
 
     TODO:
-        - device selection on /devices
+        - send an email when a device is offline/online
 
     Author: Haoyu Xu
 
@@ -38,7 +38,7 @@ class Device(Resource):
         self.database = Database("devices")
 
     @message.response
-    def get(self):
+    def get(self, key=None):
         """
 
             This method provides all devices infomation 
@@ -52,10 +52,16 @@ class Device(Resource):
                 int: status code
 
         """
-        if request.path.split("/")[1] != "devices":
-            return "", 404
+        print(request.path)
+        # /deivces
+        if request.path.split("/")[1] == "devices":
+            return self.database.get(), 200
         
-        return self.database.get(), 200
+        # /device/get/<key>
+        if request.path.split("/")[2] == key:
+            return self.settings(key), 200
+        
+        return "", 404
 
     @message.response
     def post(self):

@@ -31,6 +31,7 @@ api.add_resource(Config, '/config')
 api.add_resource(Device, 
     '/device/add',
     '/device/delete',
+    "/device/<key>",
     "/devices",
     "/pulse"
     )

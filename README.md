@@ -28,6 +28,8 @@ Author: Haoyu Xu (haoyu.xu@carleton.ca)
 
 - `/device/delete`: `DELETE`, delete a device from system, details are sent by `application/x-www-form-urlencoded` using `key=device_access_key`. `message` will be string type, `Device is deleted` and `200` is successful, `Device not found` and `404` otherwise, working
 
+- `/device/<key>`: `GET`, get a specific data collecotr info from system. `message` will be json type or `null`, working
+
 - `/devices`: `GET`, provides all registered devices to the frontend, working
 
 - `/pulse`: `PUT`, device pulse, key is sent by `application/x-www-form-urlencoded` using `who=device_access_key`. `message` will be `Pulsed` and `200` if the device is registered, `Device not found` and `200` otherwise, pulse timestamp will be based on server time, working
@@ -116,6 +118,27 @@ Used by **frontend**, to delete a data collector
 $ curl -X DELETE http://10.1.0.1:5000/device/delete -d "key=Ee_M7mT9wuoeOn8I1GYtC6NQ5EgXyKLZ6tGbyiTA_b0"
 {
     "message": "Device is deleted",
+    "status_code": 200,
+    "time": 1601334029682
+}
+```
+
+### `/device/Ee_M7mT9wuoeOn8I1GYtC6NQ5EgXyKLZ6tGbyiTA_b0`
+
+Used by **frontend**, to get a specific data collecotr info
+
+``` shell
+$ curl -X DELETE http://10.1.0.1:5000/device/delete -d "key=Ee_M7mT9wuoeOn8I1GYtC6NQ5EgXyKLZ6tGbyiTA_b0"
+{
+    "message": {
+                "ip": "10.0.0.1",
+                "port": 90,
+                "zone": "kitchen",
+                "type": "camera",
+                "name": "test1",
+                "key": "HaNQ3xeKcnj416E3PZGD35-OMTziKZ78W15bT1JDBC4",
+                "pulse": 1601256444500
+            },
     "status_code": 200,
     "time": 1601334029682
 }
