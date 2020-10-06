@@ -44,6 +44,9 @@ class Device(Resource):
             This method provides all devices infomation 
             to frontend requires user access key
 
+            Args:
+                self: access global variables
+
             Returns:
                 list: device list
                 int: status code
@@ -178,15 +181,36 @@ class Device(Resource):
 
         """
 
+        data = self.settings(key)
+
+        if data is None:
+            return False
+        else:
+            return True
+
+    def settings(self, key):
+        """
+
+            Return device settings
+
+            Args:
+                self: access global variables
+                key: device key
+            
+            Returns:
+                json: device settings
+
+        """
+
         where = {
             "name": "key",
             "value": key
         }
 
-        # only one entity should be returnd
         data = self.database.get(where=where)
 
+        # only one entity should be returnd
         if len(data) == 0:
-            return False
+            return None
         else:
-            return True
+            return data[0]

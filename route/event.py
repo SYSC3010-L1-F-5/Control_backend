@@ -31,6 +31,9 @@ from flask_restful import Resource, reqparse, request
 from lib.database import Database
 from lib.key import Key
 
+from lib.email import Email
+email = Email()
+
 from lib.message import Message
 message = Message()
 
@@ -119,6 +122,7 @@ class Event(Resource):
 
         if flag is True:
             plugin.on(event=event)
+            email.send(event=event)
             return self.uuid, 200
         else:
             return "Duplicated event", 403
