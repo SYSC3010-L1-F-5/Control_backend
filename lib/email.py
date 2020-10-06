@@ -66,13 +66,14 @@ class Email:
                 int: 200 if success
 
         """
-        content = "{device} {event} at {time}.Raw json: {raw}".format(device=self.__get_device(event["device"]), event=self.__get_event(event["type"]), time=self.__get_time(event["time"]), raw=event)
+        if self.email != "":
+            content = "{device} {event} at {time}.Raw json: {raw}".format(device=self.__get_device(event["device"]), event=self.__get_event(event["type"]), time=self.__get_time(event["time"]), raw=event)
 
-        template = json.loads(EMAIL["template"].format(user_email=self.email, username="Admin", subject=self.__get_event(event["type"]), content=content))
+            template = json.loads(EMAIL["template"].format(user_email=self.email, username="Admin", subject=self.__get_event(event["type"]), content=content))
 
-        response = requests.post(EMAIL["url"], json=template, headers={"'Content-Type":"application/json"}, auth=requests.auth.HTTPBasicAuth(EMAIL["user"], EMAIL["pass"]))
+            response = requests.post(EMAIL["url"], json=template, headers={"'Content-Type":"application/json"}, auth=requests.auth.HTTPBasicAuth(EMAIL["user"], EMAIL["pass"]))
 
-        return response.status_code
+            return response.status_code
         
 
     def __get_event(self, type):
