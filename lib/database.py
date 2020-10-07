@@ -25,12 +25,12 @@ TABLES = {
             "zone": "text",
             "type": "text",
             "name": "text",
-            "hash": "text",
+            "uuid": "text",
             "key": "text",
             "pulse": "numeric"
         },
         "verifications": [
-            "hash"
+            "uuid"
         ]
     },
     "users": {
@@ -237,6 +237,9 @@ class Database:
         """
 
             This method update data in databse table
+
+            TODO:
+                - use list/dict to update fields
 
             Args:
                 self: accessing global parameters

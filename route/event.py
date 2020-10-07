@@ -194,6 +194,9 @@ class Event(Resource):
         
             This method updates specfic event
 
+            TODO:
+                - need a better way to update event
+
             Args:
                 self: access global variables
                 uuid: event uuid

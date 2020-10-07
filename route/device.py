@@ -37,6 +37,7 @@ class Device(Resource):
             self.type: device type
             self.name: device name
             self.key: access key
+            self.uuid: device uuid
             self.database: connect to devices table in the databse
 
         """
@@ -46,6 +47,7 @@ class Device(Resource):
         self.type = None
         self.name = None
         self.key = None
+        self.uuid = None
         self.database = Database("devices")
 
     @MESSAGE.response
@@ -128,10 +130,10 @@ class Device(Resource):
             }
 
             self.key = Key().generate()
-            self.hash = Key().md5(device)
+            self.uuid = Key().uuid(device)
 
             device["pulse"] = -1
-            device["hash"] = self.hash
+            device["uuid"] = self.uuid
             device["key"] = self.key
 
             flag = self.database.insert(data=device)
@@ -182,6 +184,9 @@ class Device(Resource):
         
             This method is used by flask restful to 
             get device pulse
+
+            TODO:
+                - update device settings
 
             Args:
                 self: access global variables

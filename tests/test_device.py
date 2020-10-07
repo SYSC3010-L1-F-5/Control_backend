@@ -1,4 +1,5 @@
 import json
+import uuid
 import hashlib
 
 keys = {
@@ -208,8 +209,8 @@ def test_device_key(app, client):
         type="camera",
         name="test"
     )
-    hash = str(hashlib.md5(str(device).encode('utf-8')).hexdigest())
-    device["hash"] = hash
+    device_uuid = str(uuid.UUID(hashlib.md5(str(device).encode('utf-8')).hexdigest()))
+    device["uuid"] = device_uuid
     device["key"] = keys["test"]
     device["pulse"] = -1
     actual = json.loads(res.get_data(as_text=True))
@@ -226,8 +227,8 @@ def test_device_key(app, client):
         type="camera",
         name="test"
     )
-    hash = str(hashlib.md5(str(device).encode('utf-8')).hexdigest())
-    device["hash"] = hash
+    device_uuid = str(uuid.UUID(hashlib.md5(str(device).encode('utf-8')).hexdigest()))
+    device["uuid"] = device_uuid
     device["key"] = keys["ip"]
     device["pulse"] = -1
     actual = json.loads(res.get_data(as_text=True))
@@ -244,8 +245,8 @@ def test_device_key(app, client):
         type="camera",
         name="test"
     )
-    hash = str(hashlib.md5(str(device).encode('utf-8')).hexdigest())
-    device["hash"] = hash
+    device_uuid = str(uuid.UUID(hashlib.md5(str(device).encode('utf-8')).hexdigest()))
+    device["uuid"] = device_uuid
     device["key"] = keys["port"]
     device["pulse"] = -1
     actual = json.loads(res.get_data(as_text=True))
@@ -262,8 +263,8 @@ def test_device_key(app, client):
         type="camera",
         name="test"
     )
-    hash = str(hashlib.md5(str(device).encode('utf-8')).hexdigest())
-    device["hash"] = hash
+    device_uuid = str(uuid.UUID(hashlib.md5(str(device).encode('utf-8')).hexdigest()))
+    device["uuid"] = device_uuid
     device["key"] = keys["zone"]
     device["pulse"] = -1
     actual = json.loads(res.get_data(as_text=True))
@@ -280,8 +281,8 @@ def test_device_key(app, client):
         type="temperature",
         name="test"
     )
-    hash = str(hashlib.md5(str(device).encode('utf-8')).hexdigest())
-    device["hash"] = hash
+    device_uuid = str(uuid.UUID(hashlib.md5(str(device).encode('utf-8')).hexdigest()))
+    device["uuid"] = device_uuid
     device["key"] = keys["type"]
     device["pulse"] = -1
     actual = json.loads(res.get_data(as_text=True))
@@ -298,8 +299,8 @@ def test_device_key(app, client):
         type="camera",
         name="test1"
     )
-    hash = str(hashlib.md5(str(device).encode('utf-8')).hexdigest())
-    device["hash"] = hash
+    device_uuid = str(uuid.UUID(hashlib.md5(str(device).encode('utf-8')).hexdigest()))
+    device["uuid"] = device_uuid
     device["key"] = keys["name"]
     device["pulse"] = -1
     actual = json.loads(res.get_data(as_text=True))
