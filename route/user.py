@@ -11,8 +11,8 @@
 
 from flask_restful import Resource
 
-from route.config import Config
-CONFIG = Config().fetch()
+from lib.libconfig import LibConfig
+CONFIG = LibConfig().fetch()
 
 class User(Resource):
 

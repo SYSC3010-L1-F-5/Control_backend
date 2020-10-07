@@ -214,7 +214,7 @@ def test_device_key(app, client):
     device["key"] = keys["test"]
     device["pulse"] = -1
     actual = json.loads(res.get_data(as_text=True))
-    assert device == actual["message"]
+    assert device == actual["message"]["device"]
 
     # device with different ip
     res = client.get('/device/{}'.format(keys["ip"]))
@@ -232,7 +232,7 @@ def test_device_key(app, client):
     device["key"] = keys["ip"]
     device["pulse"] = -1
     actual = json.loads(res.get_data(as_text=True))
-    assert device == actual["message"]
+    assert device == actual["message"]["device"]
 
     # device with different port
     res = client.get('/device/{}'.format(keys["port"]))
@@ -250,7 +250,7 @@ def test_device_key(app, client):
     device["key"] = keys["port"]
     device["pulse"] = -1
     actual = json.loads(res.get_data(as_text=True))
-    assert device == actual["message"]
+    assert device == actual["message"]["device"]
 
     # device with different zone
     res = client.get('/device/{}'.format(keys["zone"]))
@@ -268,7 +268,7 @@ def test_device_key(app, client):
     device["key"] = keys["zone"]
     device["pulse"] = -1
     actual = json.loads(res.get_data(as_text=True))
-    assert device == actual["message"]
+    assert device == actual["message"]["device"]
 
     # device with different type
     res = client.get('/device/{}'.format(keys["type"]))
@@ -286,7 +286,7 @@ def test_device_key(app, client):
     device["key"] = keys["type"]
     device["pulse"] = -1
     actual = json.loads(res.get_data(as_text=True))
-    assert device == actual["message"]
+    assert device == actual["message"]["device"]
 
     # device with different name
     res = client.get('/device/{}'.format(keys["name"]))
@@ -304,7 +304,7 @@ def test_device_key(app, client):
     device["key"] = keys["name"]
     device["pulse"] = -1
     actual = json.loads(res.get_data(as_text=True))
-    assert device == actual["message"]
+    assert device == actual["message"]["device"]
 
     # non-exist device
     res = client.get('/device/{}'.format(keys["dummy"]))

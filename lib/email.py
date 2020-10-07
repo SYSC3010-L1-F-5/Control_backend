@@ -12,10 +12,10 @@ import requests
 import json
 import time
 
-from route.device import Device
+from lib.libdevice import LibDevice
 
-from route.config import Config
-CONFIG = Config().fetch()
+from lib.libconfig import LibConfig
+CONFIG = LibConfig().fetch()
 
 EMAIL = {
     "user": "5bfd66678de399dab6322c0cfb0f972b",
@@ -118,7 +118,7 @@ class Email:
 
         """
 
-        details = Device().details(key)
+        details = LibDevice().details(key)
         if details is None:
             return key
         template = "{type} {name} at {ip}:{port} located in {zone} informs that"

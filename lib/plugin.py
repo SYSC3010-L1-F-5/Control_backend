@@ -4,9 +4,8 @@
     Author: Haoyu Xu
 
 """
-
-from route.config import Config
-CONFIG = Config().fetch()
+from lib.libconfig import LibConfig
+CONFIG = LibConfig().fetch()
 
 if CONFIG["plugins"]["SenseHAT"] is True:
     from plugins.sensehat import SenseHAT

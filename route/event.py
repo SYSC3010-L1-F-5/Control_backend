@@ -36,8 +36,11 @@ EMAIL = Email()
 from lib.message import Message
 MESSAGE = Message()
 
-from .device import Device
-DEVICE = Device()
+from lib.libdevice import LibDevice
+LIBDEVICE = LibDevice()
+
+from lib.libevent import LibEvent
+LIBEVENT = LibEvent()
 
 from lib.plugin import Plugin
 PLUGIN = Plugin()
@@ -93,8 +96,9 @@ class Event(Resource):
         
         # /event/<uuid>
         if request.path.split("/")[2] == uuid:
-            details = self.details(uuid)
+            details = LIBEVENT.details(uuid)
             if details is not None:
+                details["device"] = LIBDEVICE.details(details["device"])
                 return details, 200
             else:
                 return "Event not found", 404
@@ -137,7 +141,7 @@ class Event(Resource):
         }
 
         self.uuid = Key().uuid(event)
-        is_exists = DEVICE.is_exists(self.who)
+        is_exists = LIBDEVICE.is_exists(self.who)
 
         if is_exists is False:
             return "Who are you?", 404
@@ -227,7 +231,7 @@ class Event(Resource):
         if args["hidden"] is not None:
             self.hidden = args["hidden"]
 
-        status = self.is_exists(self.uuid)
+        status = LIBEVENT.is_exists(self.uuid)
 
         if status is True:
             data = {
@@ -244,51 +248,3 @@ class Event(Resource):
             return "Updated", 200
         else:
             return "Event not found", 404
-
-    def is_exists(self, uuid):
-        """
-
-            Check if a event exists in the database
-
-            Args:
-                self: access global variables
-                uuid: event uuid
-            
-            Returns: 
-                bool: True if exists, False otherwise
-
-        """
-
-        data = self.details(uuid)
-
-        if data is None:
-            return False
-        else:
-            return True
-
-    def details(self, uuid):
-        """
-
-            Return event details
-
-            Args:
-                self: access global variables
-                uuid: event uuid
-            
-            Returns:
-                json: event uuid
-
-        """
-
-        where = {
-            "name": "uuid",
-            "value": uuid
-        }
-
-        data = self.database.get(where=where)
-
-        # only one entity should be returnd
-        if len(data) == 0:
-            return None
-        else:
-            return data[0]

@@ -20,6 +20,9 @@
 from flask_restful import Resource, reqparse, request
 from lib.key import Key
 from lib.database import Database
+from lib.libdevice import LibDevice
+from lib.libevent import LibEvent
+
 
 from lib.message import Message
 MESSAGE = Message()
@@ -79,9 +82,13 @@ class Device(Resource):
         
         # /device/<key>
         if request.path.split("/")[2] == key:
-            details = self.details(key)
+            details = LibDevice().details(key)
             if details is not None:
-                return details, 200
+                message = dict(
+                    device = details,
+                    events = LibEvent().device(key)
+                )
+                return message, 200
             else:
                 return "Device not found", 404
         
@@ -214,50 +221,4 @@ class Device(Resource):
         else:
             return "The request has unfulfilled fields", 401
 
-    def is_exists(self, key):
-        """
-
-            Check if a device exists in the database
-
-            Args:
-                self: access global variables
-                key: device key
-            
-            Returns: 
-                bool: True if exists, False otherwise
-
-        """
-
-        data = self.details(key)
-
-        if data is None:
-            return False
-        else:
-            return True
-
-    def details(self, key):
-        """
-
-            Return device details
-
-            Args:
-                self: access global variables
-                key: device key
-            
-            Returns:
-                json: device details
-
-        """
-
-        where = {
-            "name": "key",
-            "value": key
-        }
-
-        data = self.database.get(where=where)
-
-        # only one entity should be returnd
-        if len(data) == 0:
-            return None
-        else:
-            return data[0]
+    
