@@ -7,6 +7,7 @@
 
 import secrets
 import uuid
+import hashlib
 
 class Key:
 
@@ -33,7 +34,7 @@ class Key:
 
         """
 
-        self.key = self.__generate()
+        self.key = secrets.token_urlsafe(32)
 
         return self.key
 
@@ -53,7 +54,26 @@ class Key:
             
         """
 
-        return str(uuid.uuid4())
+        self.key = str(uuid.uuid4())
+
+        return self.key
+
+    def md5(self, seed):
+        """
+
+            This method generates md5 of a string
+
+            Arg:
+                seed: a string to generate md5
+
+            Returns:
+                string: uuid
+            
+        """
+
+        self.key = str(hashlib.md5(seed.encode('utf-8')).hexdigest())
+
+        return self.key
 
     def get(self):
         """
@@ -70,17 +90,3 @@ class Key:
         """
 
         return self.key
-
-    def __generate(self):
-        """
-
-            This method generates access key
-
-            Args:
-                self: accessing global parameters
-
-            Returns:
-                string: the access key
-
-        """
-        return secrets.token_urlsafe(32)
