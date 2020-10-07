@@ -6,7 +6,7 @@ from lib.key import Key
 def test_email_full(app, client):
     email = Email(email="hx-spam@outlook.com")
     event = {
-        "uuid": Key().uuid(),
+        "uuid": Key().uuid("test"),
         "device": "Central System",
         "type": "test",
         "details": "The Central System is running tests!",
@@ -19,7 +19,7 @@ def test_email_full(app, client):
 def test_email_empty(app, client):
     email = Email(email="")
     event = {
-        "uuid": Key().uuid(),
+        "uuid": Key().uuid("test"),
         "device": "Central System",
         "type": "test",
         "details": "The Central System is running tests!",

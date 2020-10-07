@@ -38,13 +38,10 @@ class Key:
 
         return self.key
 
-    def uuid(self, seed=None):
+    def uuid(self, seed):
         """
 
             This method generates uuid
-
-            Todo:
-                - use string to generate reproducilbe uuid (have no idea)
 
             Arg:
                 seed: used to generate reproducilbe uuid
@@ -54,7 +51,7 @@ class Key:
             
         """
 
-        self.key = str(uuid.uuid4())
+        self.key = str(uuid.UUID(self.md5(seed)))
 
         return self.key
 
@@ -71,7 +68,7 @@ class Key:
             
         """
 
-        self.key = str(hashlib.md5(seed.encode('utf-8')).hexdigest())
+        self.key = str(hashlib.md5(str(seed).encode('utf-8')).hexdigest())
 
         return self.key
 

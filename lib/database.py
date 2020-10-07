@@ -25,15 +25,12 @@ TABLES = {
             "zone": "text",
             "type": "text",
             "name": "text",
+            "hash": "text",
             "key": "text",
             "pulse": "numeric"
         },
         "verifications": [
-            "ip",
-            "port",
-            "zone",
-            "type",
-            "name"
+            "hash"
         ]
     },
     "users": {
@@ -57,10 +54,7 @@ TABLES = {
             "hidden": "boolean" # 0 => false, 1 => true
         },
         "verifications": [
-            "device",
-            "time",
-            "type",
-            "details"
+            "uuid"
         ]
     # },
     # "logs": {

@@ -17,8 +17,6 @@
 
     TODO:
         - limit the number of output events on database level on /events
-        - hidden events slection on /events
-        - handle exceptions
 
     - GET: The GET method requests a representation of the specified resource. Requests using GET should only retrieve data.
     - POST: The POST method is used to submit an entity to the specified resource, often causing a change in state or side effects on the server.
@@ -130,7 +128,15 @@ class Event(Resource):
         self.who = args["who"]
         self.what = json.loads(args["what"])
         self.when = args["when"]
-        self.uuid = Key().uuid()
+
+        event = {
+            "device": self.who,
+            "type": self.what["type"],
+            "details": self.what["data"],
+            "time": self.when
+        }
+
+        self.uuid = Key().uuid(event)
         is_exists = DEVICE.is_exists(self.who)
 
         if is_exists is False:

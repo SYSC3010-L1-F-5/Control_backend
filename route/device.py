@@ -119,17 +119,20 @@ class Device(Resource):
             self.type = args["type"]
             self.name = args["name"]
 
-            self.key = Key().generate()
-
             device = {
                 "ip": self.ip,
                 "port": self.port,
                 "zone": self.zone,
                 "type": self.type,
-                "name": self.name,
-                "key": self.key,
-                "pulse": -1
+                "name": self.name
             }
+
+            self.key = Key().generate()
+            self.hash = Key().md5(device)
+
+            device["pulse"] = -1
+            device["hash"] = self.hash
+            device["key"] = self.key
 
             flag = self.database.insert(data=device)
 

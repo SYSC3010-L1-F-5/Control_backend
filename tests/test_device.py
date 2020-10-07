@@ -1,4 +1,5 @@
 import json
+import hashlib
 
 keys = {
     "test": "",
@@ -200,97 +201,109 @@ def test_device_key(app, client):
     res = client.get('/device/{}'.format(keys["test"]))
     assert res.status_code == 200
     # test message
-    expected = dict(
+    device = dict(
         ip="10.0.0.1",
         port=90,
         zone="kitchen",
         type="camera",
-        name="test",
-        pulse=-1,
-        key=keys["test"]
+        name="test"
     )
+    hash = str(hashlib.md5(str(device).encode('utf-8')).hexdigest())
+    device["hash"] = hash
+    device["key"] = keys["test"]
+    device["pulse"] = -1
     actual = json.loads(res.get_data(as_text=True))
-    assert expected == actual["message"]
+    assert device == actual["message"]
 
     # device with different ip
     res = client.get('/device/{}'.format(keys["ip"]))
     assert res.status_code == 200
     # test message
-    expected = dict(
+    device = dict(
         ip="10.0.0.2",
         port=90,
         zone="kitchen",
         type="camera",
-        name="test",
-        pulse=-1,
-        key=keys["ip"]
+        name="test"
     )
+    hash = str(hashlib.md5(str(device).encode('utf-8')).hexdigest())
+    device["hash"] = hash
+    device["key"] = keys["ip"]
+    device["pulse"] = -1
     actual = json.loads(res.get_data(as_text=True))
-    assert expected == actual["message"]
+    assert device == actual["message"]
 
     # device with different port
     res = client.get('/device/{}'.format(keys["port"]))
     assert res.status_code == 200
     # test message
-    expected = dict(
+    device = dict(
         ip="10.0.0.1",
         port=91,
         zone="kitchen",
         type="camera",
-        name="test",
-        pulse=-1,
-        key=keys["port"]
+        name="test"
     )
+    hash = str(hashlib.md5(str(device).encode('utf-8')).hexdigest())
+    device["hash"] = hash
+    device["key"] = keys["port"]
+    device["pulse"] = -1
     actual = json.loads(res.get_data(as_text=True))
-    assert expected == actual["message"]
+    assert device == actual["message"]
 
     # device with different zone
     res = client.get('/device/{}'.format(keys["zone"]))
     assert res.status_code == 200
     # test message
-    expected = dict(
+    device = dict(
         ip="10.0.0.1",
         port=90,
         zone="bedroom",
         type="camera",
-        name="test",
-        pulse=-1,
-        key=keys["zone"]
+        name="test"
     )
+    hash = str(hashlib.md5(str(device).encode('utf-8')).hexdigest())
+    device["hash"] = hash
+    device["key"] = keys["zone"]
+    device["pulse"] = -1
     actual = json.loads(res.get_data(as_text=True))
-    assert expected == actual["message"]
+    assert device == actual["message"]
 
     # device with different type
     res = client.get('/device/{}'.format(keys["type"]))
     assert res.status_code == 200
     # test message
-    expected = dict(
+    device = dict(
         ip="10.0.0.1",
         port=90,
         zone="kitchen",
         type="temperature",
-        name="test",
-        pulse=-1,
-        key=keys["type"]
+        name="test"
     )
+    hash = str(hashlib.md5(str(device).encode('utf-8')).hexdigest())
+    device["hash"] = hash
+    device["key"] = keys["type"]
+    device["pulse"] = -1
     actual = json.loads(res.get_data(as_text=True))
-    assert expected == actual["message"]
+    assert device == actual["message"]
 
     # device with different name
     res = client.get('/device/{}'.format(keys["name"]))
     assert res.status_code == 200
     # test message
-    expected = dict(
+    device = dict(
         ip="10.0.0.1",
         port=90,
         zone="kitchen",
         type="camera",
-        name="test1",
-        pulse=-1,
-        key=keys["name"]
+        name="test1"
     )
+    hash = str(hashlib.md5(str(device).encode('utf-8')).hexdigest())
+    device["hash"] = hash
+    device["key"] = keys["name"]
+    device["pulse"] = -1
     actual = json.loads(res.get_data(as_text=True))
-    assert expected == actual["message"]
+    assert device == actual["message"]
 
     # non-exist device
     res = client.get('/device/{}'.format(keys["dummy"]))
