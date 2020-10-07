@@ -28,6 +28,8 @@ Author: Haoyu Xu (haoyu.xu@carleton.ca)
 
 - `/device/delete`: `DELETE`, delete a device from system, details are sent by `application/x-www-form-urlencoded` using `key=device_access_key`. `message` will be string type, `Device is deleted` and `200` is successful, `Device not found` and `404` otherwise, working
 
+- `/device/update`: `PUT`, update a device, key is sent by `application/x-www-form-urlencoded` using `which=event_uuid&fields={"ip": device_ip, "port": device_port, "zone": device_zone, "type": device_type, "name"=device_name}`, in which `ip` is the `device ip`, `port` is the `device port`, `zone` is the `device zone`, `type` is the `device type`, and `name` is the `device name`; one or both of these parts must be presented. `message` will be `Device is updated` if the device is found and updated, otherwise `status_code` will be `401` and `message` will be `Device is not updated`, working
+
 - `/device/<key>`: `GET`, get a specific data collecotr details from system. `message` will be json type or `null`, `200` is successful, `404` otherwise, working
 
 - `/devices`: `GET`, provides all registered devices to the frontend, working
@@ -40,7 +42,7 @@ Author: Haoyu Xu (haoyu.xu@carleton.ca)
 
 - `/event/delete`: `DELETE`, delete a event from system, details are sent by `application/x-www-form-urlencoded` using `which=event_uuid`. `message` will be string type, `Event is deleted` and `200` is successful, `Event not found` and `404` otherwise, working
 
-- `/event/update`: `PUT`, update a event, key is sent by `application/x-www-form-urlencoded` using `which=event_uuid&what=event_details&hidden=(0/1)`, in which `what` is the `data` part of the `event_details`, and `hidden` equals `1` is to hide the event, `0` otherwise, one or both of these two parts must be presented. `message` will be `Updated` if the event is found, otherwise `status_code` will be `403`, working
+- `/event/update`: `PUT`, update a event, key is sent by `application/x-www-form-urlencoded` using `which=event_uuid&fields={"what": data, "hidden": (0/1)}`, in which `what` is the `data` part of the `event_details`, and `hidden` equals `1` is to hide the event, `0` otherwise, one or both of these two parts must be presented. `message` will be a new event uuid if the event is found and updated, otherwise `status_code` will be `401` and `message` will be `Event is not updated`, working
 
 - `/event/clear`: `PUT`, clear plugin status, working
 
@@ -106,9 +108,9 @@ Used by **frontend**, the key needs to be entered to data collector
 ``` shell
 $ curl -X POST http://10.1.0.1:5000/device/add -d "ip=10.0.0.1&port=90&zone=kitchen&type=camera&name=test12"
 {
-    "message": "Ee_M7mT9wuoeOn8I1GYtC6NQ5EgXyKLZ6tGbyiTA_b0",
+    "message": "MDY2TIQx7HoYL8bHfjszcuhUI-AlGMZPWa8qnysvlGY",
     "status_code": 200,
-    "time": 1601333473239
+    "time": 1602096032774
 }
 ```
 
@@ -117,11 +119,24 @@ $ curl -X POST http://10.1.0.1:5000/device/add -d "ip=10.0.0.1&port=90&zone=kitc
 Used by **frontend**, to delete a data collector
 
 ``` shell
-$ curl -X DELETE http://10.1.0.1:5000/device/delete -d "key=Ee_M7mT9wuoeOn8I1GYtC6NQ5EgXyKLZ6tGbyiTA_b0"
+$ curl -X DELETE http://10.1.0.1:5000/device/delete -d "key=MDY2TIQx7HoYL8bHfjszcuhUI-AlGMZPWa8qnysvlGY"
 {
     "message": "Device is deleted",
     "status_code": 200,
-    "time": 1601334029682
+    "time": 1602096436404
+}
+```
+
+### `/device/update`
+
+Used by **frontend**, update an existing data collector
+
+``` shell
+$ curl -X PUT http://10.1.0.1:5000/device/update -d 'key=Si88Eb9DhyMN93s49DGIWKKlOs6YebMqTX6lem8_Kgg&fields={"ip":"10.0.0.2","port":"90","zone":"bedroom","type":"temperature","name":"test1"}'
+{
+    "message": "Device is updated",
+    "status_code": 200,
+    "time": 1602096282155
 }
 ```
 
@@ -130,19 +145,32 @@ $ curl -X DELETE http://10.1.0.1:5000/device/delete -d "key=Ee_M7mT9wuoeOn8I1GYt
 Used by **frontend**, to get a specific data collecotr details
 
 ``` shell
-$ curl -X GET http://10.1.0.1:5000/device/Ee_M7mT9wuoeOn8I1GYtC6NQ5EgXyKLZ6tGbyiTA_b0
+$ curl -X GET http://10.1.0.1:5000/device/MDY2TIQx7HoYL8bHfjszcuhUI-AlGMZPWa8qnysvlGY
 {
     "message": {
-                "ip": "10.0.0.1",
-                "port": 90,
-                "zone": "kitchen",
-                "type": "camera",
-                "name": "test1",
-                "key": "HaNQ3xeKcnj416E3PZGD35-OMTziKZ78W15bT1JDBC4",
-                "pulse": 1601256444500
-            },
+        "device": {
+            "ip": "10.0.0.1",
+            "port": 90,
+            "zone": "kitchen",
+            "type": "camera",
+            "name": "test12",
+            "uuid": "aef0f39d-2aca-7520-7c89-fb3350075e74",
+            "key": "",
+            "pulse": 1602096165307
+        },
+        "events": [
+            {
+                "uuid": "f0a2a6b4-50d5-a045-58d4-8c321c7bdebe",
+                "device": "",
+                "time": 1501240210990,
+                "type": "motion_detected",
+                "details": "https://example.com/1",
+                "hidden": 1
+            }
+        ]
+    },
     "status_code": 200,
-    "time": 1601334029682
+    "time": 1602096291861
 }
 ```
 
@@ -151,11 +179,11 @@ $ curl -X GET http://10.1.0.1:5000/device/Ee_M7mT9wuoeOn8I1GYtC6NQ5EgXyKLZ6tGbyi
 Used by **data collector**, update it status to prevent unexpected offline
 
 ``` shell
-$ curl -X PUT http://10.1.0.1:5000/pulse -d "who=Ee_M7mT9wuoeOn8I1GYtC6NQ5EgXyKLZ6tGbyiTA_b0"
+$ curl -X PUT http://10.1.0.1:5000/pulse -d "who=MDY2TIQx7HoYL8bHfjszcuhUI-AlGMZPWa8qnysvlGY"
 {
     "message": "Pulsed",
     "status_code": 200,
-    "time": 1601333626575
+    "time": 1602096165548
 }
 ```
 
@@ -164,11 +192,11 @@ $ curl -X PUT http://10.1.0.1:5000/pulse -d "who=Ee_M7mT9wuoeOn8I1GYtC6NQ5EgXyKL
 Used by **data collector**, add an event to the system when a new event is triggered
 
 ``` shell
-$ curl -X POST http://10.1.0.1:5000/event/add -d "who=Ee_M7mT9wuoeOn8I1GYtC6NQ5EgXyKLZ6tGbyiTA_b0&what={\"type\":\"motion_detected\",\"data\":\"https://example.com/123\"}&when=1501240210990"
+$ curl -X POST http://10.1.0.1:5000/event/add -d "who=MDY2TIQx7HoYL8bHfjszcuhUI-AlGMZPWa8qnysvlGY&what={\"type\":\"motion_detected\",\"data\":\"https://example.com/123\"}&when=1501240210990"
 {
-    "message": "67a87a35-5508-4dba-9b40-d810a9af3992",
+    "message": "6ef7798e-7b46-9193-1b01-7649c8e78104",
     "status_code": 200,
-    "time": 1601333715823
+    "time": 1602096190335
 }
 ```
 
@@ -177,11 +205,11 @@ $ curl -X POST http://10.1.0.1:5000/event/add -d "who=Ee_M7mT9wuoeOn8I1GYtC6NQ5E
 Used by **data collector** or **frontend**, update an existing event
 
 ``` shell
-$ curl -X PUT http://10.1.0.1:5000/event/update -d "which=67a87a35-5508-4dba-9b40-d810a9af3992&what=https://example.org&hidden=1"
+$ curl -X PUT http://10.1.0.1:5000/event/update -d 'which=6ef7798e-7b46-9193-1b01-7649c8e78104&fields={"what": "https://example.com/1", "hidden": 1}'
 {
-    "message": "Updated",
+    "message": "f0a2a6b4-50d5-a045-58d4-8c321c7bdebe",
     "status_code": 200,
-    "time": 1601333830783
+    "time": 1602096282155
 }
 ```
 
@@ -194,7 +222,7 @@ $ curl -X DELETE http://10.1.0.1:5000/event/delete -d "which=67a87a35-5508-4dba-
 {
     "message": "Event is deleted",
     "status_code": 200,
-    "time": 1601333878427
+    "time": 1602096332450
 }
 ```
 
@@ -207,7 +235,7 @@ $ curl -X PUT http://10.1.0.1:5000/event/clear
 {
     "message": "OK",
     "status_code": 200,
-    "time": 1601333900393
+    "time": 1602096308789
 }
 ```
 
@@ -216,18 +244,27 @@ $ curl -X PUT http://10.1.0.1:5000/event/clear
 Used by **frontend**, to get a specific event details
 
 ``` shell
-$ curl -X GET http://10.1.0.1:5000/event/67a87a35-5508-4dba-9b40-d810a9af3992
+$ curl -X GET http://10.1.0.1:5000/event/f0a2a6b4-50d5-a045-58d4-8c321c7bdebe
 {
     "message": {
-        "uuid": "67a87a35-5508-4dba-9b40-d810a9af3992",
-        "device": "Ee_M7mT9wuoeOn8I1GYtC6NQ5EgXyKLZ6tGbyiTA_b0",
-        "time": 1601240112209,
-        "type": "temperature",
-        "details": "10",
-        "hidden": 0
+        "uuid": "f0a2a6b4-50d5-a045-58d4-8c321c7bdebe",
+        "device": {
+            "ip": "10.0.0.1",
+            "port": 90,
+            "zone": "kitchen",
+            "type": "camera",
+            "name": "test12",
+            "uuid": "aef0f39d-2aca-7520-7c89-fb3350075e74",
+            "key": "",
+            "pulse": 1602096165307
+        },
+        "time": 1501240210990,
+        "type": "motion_detected",
+        "details": "https://example.com/1",
+        "hidden": 1
     },
     "status_code": 200,
-    "time": 1602009661897
+    "time": 1602096366890
 }
 ```
 
@@ -240,72 +277,25 @@ $ curl -X GET http://10.1.0.1:5000/events
 {
     "message": [
         {
-            "uuid": "0698143b-ed44-4f07-96a0-077264501497",
-            "device": "HaNQ3xeKcnj416E3PZGD35-OMTziKZ78W15bT1JDBC4",
-            "time": 1601248329679,
-            "type": "motion_detected",
-            "details": "https://example.org/123",
-            "hidden": 1
-        },
-        {
-            "uuid": "df3c65b0-c51e-4172-9a96-975a602fe4a0",
-            "device": "Na5adCHPj7p4X35Od_hQ8oQkDq8uImV_yGfPQ_3--UU",
-            "time": 1601240112209,
-            "type": "temperature",
-            "details": "10",
-            "hidden": 0
-        },
-        {
-            "uuid": "61ab4260-122c-4125-bc72-4de29a8e4c82",
-            "device": "Na5adCHPj7p4X35Od_hQ8oQkDq8uImV_yGfPQ_3--UU",
-            "time": 1601240112209,
-            "type": "temperature",
-            "details": "100",
-            "hidden": 0
-        },
-        {
-            "uuid": "c82af6f8-d41a-40e9-a5fe-f2fc7cef6a92",
-            "device": "Na5adCHPj7p4X35Od_hQ8oQkDq8uImV_yGfPQ_3--UU",
-            "time": 1601240112209,
-            "type": "humidity",
-            "details": "100",
-            "hidden": 0
-        },
-        {
-            "uuid": "31ce8ed3-2904-42a0-9745-ec7d51ed43d5",
-            "device": "Na5adCHPj7p4X35Od_hQ8oQkDq8uImV_yGfPQ_3--UU",
-            "time": 1601240112209,
-            "type": "humidity",
-            "details": "1300",
-            "hidden": 0
-        },
-        {
-            "uuid": "bcf578db-c750-459a-8384-72de9def8fcd",
-            "device": "Na5adCHPj7p4X35Od_hQ8oQkDq8uImV_yGfPQ_3--UU",
-            "time": 1601240112209,
-            "type": "pressure",
-            "details": "1300",
-            "hidden": 0
-        },
-        {
-            "uuid": "772b2ee1-ae8b-4a1f-a8af-9af72d155aae",
-            "device": "Na5adCHPj7p4X35Od_hQ8oQkDq8uImV_yGfPQ_3--UU",
-            "time": 1601240312296,
-            "type": "motion_detected",
-            "details": "https://example.com/123",
-            "hidden": 0
-        },
-        {
-            "uuid": "0a05ac60-7442-42bf-8433-5f557d363c7e",
-            "device": "Na5adCHPj7p4X35Od_hQ8oQkDq8uImV_yGfPQ_3--UU",
+            "uuid": "f0a2a6b4-50d5-a045-58d4-8c321c7bdebe",
+            "device": {
+                "ip": "10.0.0.1",
+                "port": 90,
+                "zone": "kitchen",
+                "type": "camera",
+                "name": "test12",
+                "uuid": "aef0f39d-2aca-7520-7c89-fb3350075e74",
+                "key": "",
+                "pulse": 1602096165307
+            },
             "time": 1501240210990,
             "type": "motion_detected",
-            "details": "https://example.com/123",
-            "hidden": 0
+            "details": "https://example.com/1",
+            "hidden": 1
         }
     ],
     "status_code": 200,
-    "time": 1601333948566
+    "time": 1602096377209
 }
 ```
 
@@ -322,21 +312,13 @@ $ curl -X GET http://10.1.0.1:5000/devices
             "port": 90,
             "zone": "kitchen",
             "type": "camera",
-            "name": "test1",
-            "key": "HaNQ3xeKcnj416E3PZGD35-OMTziKZ78W15bT1JDBC4",
-            "pulse": 1601256444500
-        },
-        {
-            "ip": "10.0.0.1",
-            "port": 90,
-            "zone": "kitchen",
-            "type": "camera",
-            "name": "test10",
-            "key": "Na5adCHPj7p4X35Od_hQ8oQkDq8uImV_yGfPQ_3--UU",
-            "pulse": -1
+            "name": "test12",
+            "uuid": "aef0f39d-2aca-7520-7c89-fb3350075e74",
+            "key": "",
+            "pulse": 1602096165307
         }
     ],
     "status_code": 200,
-    "time": 1601334054916
+    "time": 1602096390337
 }
 ```
