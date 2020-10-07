@@ -76,9 +76,14 @@ class LibEvent:
             "value": key
         }
 
-        data = self.database.get(where=where)
+        order = {
+            "name": "time",
+            "value": "DESC"
+        }
+
+        data = self.database.get(where=where, order=order)
 
         if len(data) == 0:
             return None
         else:
-            return data[0]
+            return data

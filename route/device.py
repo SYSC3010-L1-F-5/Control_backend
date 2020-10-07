@@ -74,19 +74,31 @@ class Device(Resource):
         if request.path.split("/")[1] == "devices":
 
             order = {
-                    "name": "pulse",
-                    "value": "DESC"
-                }
+                "name": "pulse",
+                "value": "DESC"
+            }
 
-            return self.database.get(order=order), 200
+            devices = self.database.get(order=order)
+            if devices is not None:
+                # hide device key
+                for item in devices:
+                    item["key"] = ""
+
+            return devices, 200
         
         # /device/<key>
         if request.path.split("/")[2] == key:
             details = LibDevice().details(key)
             if details is not None:
+                events = LibEvent().device(key)
+                if events is not None:
+                    # Hide the device key
+                    for item in events:
+                        item["device"] = ""
+                details["key"] = ""
                 message = dict(
                     device = details,
-                    events = LibEvent().device(key)
+                    events = events
                 )
                 return message, 200
             else:

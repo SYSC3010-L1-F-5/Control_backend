@@ -1,3 +1,8 @@
+"""
+    TODO:
+        - test events under /device/<key>
+"""
+
 import json
 import uuid
 import hashlib
@@ -211,7 +216,7 @@ def test_device_key(app, client):
     )
     device_uuid = str(uuid.UUID(hashlib.md5(str(device).encode('utf-8')).hexdigest()))
     device["uuid"] = device_uuid
-    device["key"] = keys["test"]
+    device["key"] = ""
     device["pulse"] = -1
     actual = json.loads(res.get_data(as_text=True))
     assert device == actual["message"]["device"]
@@ -229,7 +234,7 @@ def test_device_key(app, client):
     )
     device_uuid = str(uuid.UUID(hashlib.md5(str(device).encode('utf-8')).hexdigest()))
     device["uuid"] = device_uuid
-    device["key"] = keys["ip"]
+    device["key"] = ""
     device["pulse"] = -1
     actual = json.loads(res.get_data(as_text=True))
     assert device == actual["message"]["device"]
@@ -247,7 +252,7 @@ def test_device_key(app, client):
     )
     device_uuid = str(uuid.UUID(hashlib.md5(str(device).encode('utf-8')).hexdigest()))
     device["uuid"] = device_uuid
-    device["key"] = keys["port"]
+    device["key"] = ""
     device["pulse"] = -1
     actual = json.loads(res.get_data(as_text=True))
     assert device == actual["message"]["device"]
@@ -265,7 +270,7 @@ def test_device_key(app, client):
     )
     device_uuid = str(uuid.UUID(hashlib.md5(str(device).encode('utf-8')).hexdigest()))
     device["uuid"] = device_uuid
-    device["key"] = keys["zone"]
+    device["key"] = ""
     device["pulse"] = -1
     actual = json.loads(res.get_data(as_text=True))
     assert device == actual["message"]["device"]
@@ -283,7 +288,7 @@ def test_device_key(app, client):
     )
     device_uuid = str(uuid.UUID(hashlib.md5(str(device).encode('utf-8')).hexdigest()))
     device["uuid"] = device_uuid
-    device["key"] = keys["type"]
+    device["key"] = ""
     device["pulse"] = -1
     actual = json.loads(res.get_data(as_text=True))
     assert device == actual["message"]["device"]
@@ -301,7 +306,7 @@ def test_device_key(app, client):
     )
     device_uuid = str(uuid.UUID(hashlib.md5(str(device).encode('utf-8')).hexdigest()))
     device["uuid"] = device_uuid
-    device["key"] = keys["name"]
+    device["key"] = ""
     device["pulse"] = -1
     actual = json.loads(res.get_data(as_text=True))
     assert device == actual["message"]["device"]

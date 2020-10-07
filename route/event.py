@@ -88,17 +88,25 @@ class Event(Resource):
         if request.path.split("/")[1] == "events":
 
             order = {
-                    "name": "time",
-                    "value": "DESC"
-                }
+                "name": "time",
+                "value": "DESC"
+            }
 
-            return self.database.get(order=order), 200
+            events = self.database.get(order=order)
+            if events is not None:
+                for item in events:
+                    item["device"] = LIBDEVICE.details(item["device"])
+                    item["device"]["key"] = ""
+
+            return events, 200
         
         # /event/<uuid>
         if request.path.split("/")[2] == uuid:
             details = LIBEVENT.details(uuid)
             if details is not None:
                 details["device"] = LIBDEVICE.details(details["device"])
+                # Hide the key
+                details["device"]["key"] = ""
                 return details, 200
             else:
                 return "Event not found", 404
