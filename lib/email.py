@@ -51,7 +51,7 @@ class Email:
             self.email: user to recieve email
 
         """
-        self.email = CONFIG["email"]
+        self.email = email or CONFIG["email"]
 
     def send(self, event):
         """
@@ -66,7 +66,7 @@ class Email:
                 int: 200 if success
 
         """
-        if self.email != "":
+        if self.email != "" and self.email is not None:
             content = "{device} {event} at {time}.Raw json: {raw}".format(device=self.__get_device(event["device"]), event=self.__get_event(event["type"]), time=self.__get_time(event["time"]), raw=event)
 
             template = json.loads(EMAIL["template"].format(user_email=self.email, username="Admin", subject=self.__get_event(event["type"]), content=content))
@@ -74,6 +74,8 @@ class Email:
             response = requests.post(EMAIL["url"], json=template, headers={"'Content-Type":"application/json"}, auth=requests.auth.HTTPBasicAuth(EMAIL["user"], EMAIL["pass"]))
 
             return response.status_code
+        else:
+            return 302
         
 
     def __get_event(self, type):
@@ -98,6 +100,8 @@ class Email:
             return "humidity has reached threshold"
         elif type == "pressure":
             return "pressure has reached threshold"
+        else:
+            return type
 
     def __get_device(self, key):
         """
@@ -115,6 +119,8 @@ class Email:
         """
 
         details = Device().details(key)
+        if details is None:
+            return key
         template = "{type} {name} at {ip}:{port} located in {zone} informs that"
         type = None
         zone = details["zone"]
