@@ -110,30 +110,35 @@ class Device(Resource):
         PARASER.add_argument('name', type=str, help='Device Name')
         args = PARASER.parse_args(strict=True)
         
-        self.ip = args["ip"]
-        self.port = args["port"]
-        self.zone = args["zone"]
-        self.type = args["type"]
-        self.name = args["name"]
+        if args["ip"] and args["port"] and args["zone"] and args["type"] and args["name"] is not None \
+        and \
+        args["ip"] and args["port"] and args["zone"] and args["type"] and args["name"] != "":
+            self.ip = args["ip"]
+            self.port = args["port"]
+            self.zone = args["zone"]
+            self.type = args["type"]
+            self.name = args["name"]
 
-        self.key = Key().generate()
+            self.key = Key().generate()
 
-        device = {
-            "ip": self.ip,
-            "port": self.port,
-            "zone": self.zone,
-            "type": self.type,
-            "name": self.name,
-            "key": self.key,
-            "pulse": -1
-        }
+            device = {
+                "ip": self.ip,
+                "port": self.port,
+                "zone": self.zone,
+                "type": self.type,
+                "name": self.name,
+                "key": self.key,
+                "pulse": -1
+            }
 
-        flag = self.database.insert(data=device)
+            flag = self.database.insert(data=device)
 
-        if flag is True:
-            return self.key, 200
+            if flag is True:
+                return self.key, 200
+            else:
+                return "Device exists", 403
         else:
-            return "Device exists", 403 
+            return "The request has unfulfilled fields", 401
 
     @MESSAGE.response
     def delete(self):
@@ -156,13 +161,16 @@ class Device(Resource):
         PARASER.add_argument('key', type=str, help='Device Key')
         args = PARASER.parse_args(strict=True)
 
-        self.key = args["key"]
-        status = self.database.remove(self.key)
+        if args["key"] is not None and args["key"] != "": 
+            self.key = args["key"]
+            status = self.database.remove(self.key)
 
-        if status is True:
-            return "Device is deleted", 200
+            if status is True:
+                return "Device is deleted", 200
+            else:
+                return "Device not found", 404
         else:
-            return "Device not found", 404
+            return "The request has unfulfilled fields", 401
             
 
     @MESSAGE.response
@@ -186,15 +194,17 @@ class Device(Resource):
 
         PARASER.add_argument('who', type=str, help='Device Key')
         args = PARASER.parse_args(strict=True)
+        if args["who"] is not None and args["who"] != "": 
+            self.key = args["who"]
+            
+            status = self.database.update(self.key)
 
-        self.key = args["who"]
-        
-        status = self.database.update(self.key)
-
-        if status is True:
-            return "Pulsed", 200
+            if status is True:
+                return "Pulsed", 200
+            else:
+                return "Device not found", 404
         else:
-            return "Device not found", 404
+            return "The request has unfulfilled fields", 401
 
     def is_exists(self, key):
         """

@@ -16,6 +16,7 @@ import time
 
 MESSAGES = {
             "200": "HTTP 200 OK",
+            "400": "HTTP Bad Request",
             "401": "HTTP Unauthorized",
             "403": "Forbidden",
             "404": "HTTP Not Found",
@@ -43,13 +44,21 @@ class Message:
 
         @wraps(func)
         def wrapper(*args, **kwargs):
-            original, status_code = func(*args, **kwargs)
-            result = {
-                "message": self.message(status_code, original),
-                "status_code": status_code,
-                "time": int(time.time() * 1000)
-            }
-            return result, status_code
+            try:
+                original, status_code = func(*args, **kwargs)
+                result = {
+                    "message": self.message(status_code, original),
+                    "status_code": status_code,
+                    "time": int(time.time() * 1000)
+                }
+                return result, status_code
+            except Exception as e:
+                result = {
+                    "message": self.message(500, str(e)),
+                    "status_code": 500,
+                    "time": int(time.time() * 1000)
+                }
+                return result, 500
         return wrapper
 
     def errorhandler(self, status_code):

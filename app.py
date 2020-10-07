@@ -12,10 +12,14 @@ from lib.message import Message
 
 MESSAGE = Message()
 APP = Flask(__name__)
-API = Api(APP, catch_all_404s=True)
+API = Api(APP)
 
 # it seems that this line of code is called twice
 Database().create()
+
+@APP.errorhandler(400)
+def not_found(error):
+    return make_response(jsonify(MESSAGE.errorhandler(400)), 400)
 
 @APP.errorhandler(404)
 def not_found(error):
