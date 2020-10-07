@@ -1,8 +1,3 @@
-"""
-    TODO:
-        - test events under /device/<key>
-"""
-
 import json
 import uuid
 import hashlib
@@ -319,6 +314,216 @@ def test_device_key(app, client):
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
 
+def test_device_update(app, client):
+    # empty field
+    res = client.put('/device/update', data=dict(
+        key=keys["test"],
+        fields=""
+    ))
+    assert res.status_code == 401
+    # test message
+    expected = "Device is not updated"
+    actual = json.loads(res.get_data(as_text=True))
+    assert expected == actual["message"]
+
+    # non-exist field
+    res = client.put('/device/update', data=dict(
+        key=keys["test"]
+    ))
+    assert res.status_code == 401
+    # test message
+    expected = "Device is not updated"
+    actual = json.loads(res.get_data(as_text=True))
+    assert expected == actual["message"]
+
+    # non-exist device
+    res = client.put('/device/update', data=dict(
+        key=keys["dummy"]
+    ))
+    assert res.status_code == 404
+    # test message
+    expected = "Device not found"
+    actual = json.loads(res.get_data(as_text=True))
+    assert expected == actual["message"]
+
+    # sufficient full case
+    fields = dict(
+        ip="10.0.0.2",
+        port=91,
+        zone="bedroom",
+        type="temperature",
+        name="test1"
+    )
+    res = client.put('/device/update', data=dict(
+        key=keys["test"],
+        fields=str(json.dumps(fields))
+    ))
+    assert res.status_code == 200
+    # test message
+    expected = "Device is updated"
+    actual = json.loads(res.get_data(as_text=True))
+    assert expected == actual["message"]
+    res = client.get('/device/{}'.format(keys["test"]))
+    assert res.status_code == 200
+    # test message
+    device = fields
+    device_uuid = str(uuid.UUID(hashlib.md5(str(device).encode('utf-8')).hexdigest()))
+    device["uuid"] = device_uuid
+    device["key"] = ""
+    device["pulse"] = -1
+    actual = json.loads(res.get_data(as_text=True))
+    assert device == actual["message"]["device"]
+
+    # sufficient ip case
+    fields = dict(
+        ip="10.0.0.1"
+    )
+    res = client.put('/device/update', data=dict(
+        key=keys["test"],
+        fields=str(json.dumps(fields))
+    ))
+    assert res.status_code == 200
+    # test message
+    expected = "Device is updated"
+    actual = json.loads(res.get_data(as_text=True))
+    assert expected == actual["message"]
+    res = client.get('/device/{}'.format(keys["test"]))
+    assert res.status_code == 200
+    # test message
+    device = dict(
+        ip="10.0.0.1",
+        port=91,
+        zone="bedroom",
+        type="temperature",
+        name="test1"
+    )
+    device_uuid = str(uuid.UUID(hashlib.md5(str(device).encode('utf-8')).hexdigest()))
+    device["uuid"] = device_uuid
+    device["key"] = ""
+    device["pulse"] = -1
+    actual = json.loads(res.get_data(as_text=True))
+    assert device == actual["message"]["device"]
+
+    # sufficient port case
+    fields = dict(
+        port=90
+    )
+    res = client.put('/device/update', data=dict(
+        key=keys["test"],
+        fields=str(json.dumps(fields))
+    ))
+    assert res.status_code == 200
+    # test message
+    expected = "Device is updated"
+    actual = json.loads(res.get_data(as_text=True))
+    assert expected == actual["message"]
+    res = client.get('/device/{}'.format(keys["test"]))
+    assert res.status_code == 200
+    # test message
+    device = dict(
+        ip="10.0.0.1",
+        port=90,
+        zone="bedroom",
+        type="temperature",
+        name="test1"
+    )
+    device_uuid = str(uuid.UUID(hashlib.md5(str(device).encode('utf-8')).hexdigest()))
+    device["uuid"] = device_uuid
+    device["key"] = ""
+    device["pulse"] = -1
+    actual = json.loads(res.get_data(as_text=True))
+    assert device == actual["message"]["device"]
+
+    # sufficient zone case
+    fields = dict(
+        zone="kitchen"
+    )
+    res = client.put('/device/update', data=dict(
+        key=keys["test"],
+        fields=str(json.dumps(fields))
+    ))
+    assert res.status_code == 200
+    # test message
+    expected = "Device is updated"
+    actual = json.loads(res.get_data(as_text=True))
+    assert expected == actual["message"]
+    res = client.get('/device/{}'.format(keys["test"]))
+    assert res.status_code == 200
+    # test message
+    device = device = dict(
+        ip="10.0.0.1",
+        port=90,
+        zone="kitchen",
+        type="temperature",
+        name="test1"
+    )
+    device_uuid = str(uuid.UUID(hashlib.md5(str(device).encode('utf-8')).hexdigest()))
+    device["uuid"] = device_uuid
+    device["key"] = ""
+    device["pulse"] = -1
+    actual = json.loads(res.get_data(as_text=True))
+    assert device == actual["message"]["device"]
+
+    # sufficient type case
+    fields = dict(
+        type="camera"
+    )
+    res = client.put('/device/update', data=dict(
+        key=keys["test"],
+        fields=str(json.dumps(fields))
+    ))
+    assert res.status_code == 200
+    # test message
+    expected = "Device is updated"
+    actual = json.loads(res.get_data(as_text=True))
+    assert expected == actual["message"]
+    res = client.get('/device/{}'.format(keys["test"]))
+    assert res.status_code == 200
+    # test message
+    device = device = dict(
+        ip="10.0.0.1",
+        port=90,
+        zone="kitchen",
+        type="camera",
+        name="test1"
+    )
+    device_uuid = str(uuid.UUID(hashlib.md5(str(device).encode('utf-8')).hexdigest()))
+    device["uuid"] = device_uuid
+    device["key"] = ""
+    device["pulse"] = -1
+    actual = json.loads(res.get_data(as_text=True))
+    assert device == actual["message"]["device"]
+
+    # sufficient name case
+    fields = dict(
+        name="test"
+    )
+    res = client.put('/device/update', data=dict(
+        key=keys["test"],
+        fields=str(json.dumps(fields))
+    ))
+    assert res.status_code == 200
+    # test message
+    expected = "Device is updated"
+    actual = json.loads(res.get_data(as_text=True))
+    assert expected == actual["message"]
+    res = client.get('/device/{}'.format(keys["test"]))
+    assert res.status_code == 200
+    # test message
+    device = device = device = dict(
+        ip="10.0.0.1",
+        port=90,
+        zone="kitchen",
+        type="camera",
+        name="test"
+    )
+    device_uuid = str(uuid.UUID(hashlib.md5(str(device).encode('utf-8')).hexdigest()))
+    device["uuid"] = device_uuid
+    device["key"] = ""
+    device["pulse"] = -1
+    actual = json.loads(res.get_data(as_text=True))
+    assert device == actual["message"]["device"]
+
 def test_pulse(app, client):
     # sufficient case
     res = client.put('/pulse', data=dict(
@@ -454,6 +659,8 @@ def test_device_event(app, client):
     res = client.delete('/event/delete', data=dict(
         which=events[1]["uuid"]
     ))
+    assert res.status_code == 200
+    res = client.put('/event/clear')
     assert res.status_code == 200
 
 # should be the last test
