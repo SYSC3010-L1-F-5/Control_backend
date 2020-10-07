@@ -96,7 +96,8 @@ class Event(Resource):
             if events is not None:
                 for item in events:
                     item["device"] = LIBDEVICE.details(item["device"])
-                    item["device"]["key"] = ""
+                    if item["device"] is not None:
+                        item["device"]["key"] = ""
 
             return events, 200
         
@@ -223,8 +224,7 @@ class Event(Resource):
             return "", 404
 
         PARASER.add_argument('which', type=str, help='Event UUID')
-        PARASER.add_argument('what', type=str, help='Event details')
-        PARASER.add_argument('hidden', type=int, help='Hide event')
+        PARASER.add_argument('fields', type=str, help='Fields to be updated')
         args = PARASER.parse_args(strict=True)
 
         # /event/clear
@@ -234,25 +234,47 @@ class Event(Resource):
 
         # /event/update
         self.uuid = args["which"]
-        if args["what"] is not None:
-            self.what = args["what"]
-        if args["hidden"] is not None:
-            self.hidden = args["hidden"]
 
         status = LIBEVENT.is_exists(self.uuid)
 
         if status is True:
-            data = {
-                    "uuid": self.uuid,
-                    "hidden": self.hidden,
-                    "type": "hidden"
+            where = {
+                    "name": "uuid",
+                    "value": self.uuid
             }
-            self.database.update(data)
-            if self.what is not None:
-                data["details"] = self.what
-                data["type"] = "details"
-                self.database.update(data)
-            
-            return "Updated", 200
+            if args["fields"] is not None and args["fields"] != "":
+                fields = json.loads(args["fields"])
+                if "hidden" in fields:
+                    self.hidden = fields["hidden"]
+                    set = {
+                        "name": "hidden",
+                        "value": self.hidden
+                    }
+                    self.database.update(where=where, set=set)
+                if "what" in fields:
+                    self.what = fields["what"]
+                    set = {
+                        "name": "details",
+                        "value": self.what
+                    }
+                    self.database.update(where=where, set=set)
+                # update event uuid
+                details = LibEvent().details(self.uuid)
+                event = {
+                    "device": details["device"],
+                    "type": details["type"],
+                    "details": details["details"],
+                    "time": details["time"]
+                }
+                self.uuid = Key().uuid(event)
+                set = {
+                        "name": "uuid",
+                        "value": self.uuid
+                    }
+                self.database.update(where=where, set=set)
+            else:
+                return "Event is not updated", 401
+
+            return self.uuid, 200
         else:
             return "Event not found", 404

@@ -16,7 +16,8 @@
     - DELETE: The DELETE method deletes the specified resource.
 
 """
-
+import time
+import json
 from flask_restful import Resource, reqparse, request
 from lib.key import Key
 from lib.database import Database
@@ -202,35 +203,111 @@ class Device(Resource):
         """
         
             This method is used by flask restful to 
-            get device pulse
-
-            TODO:
-                - update device settings
+            get device pulse, or update the device
 
             Args:
                 self: access global variables
-                key: device key
             
             Returns:
                 string: pulsed or not
                 int: status code
         
         """
-        if request.path.split("/")[1] != "pulse":
-            return "", 404
+        path = request.path.split("/")
+        if path[1] == "pulse":
+            PARASER.add_argument('who', type=str, help='Device Key')
+            args = PARASER.parse_args(strict=True)
+            if args["who"] is not None and args["who"] != "": 
+                self.key = args["who"]
+                where = {
+                    "name": "key",
+                    "value": self.key
+                }
+                set = {
+                    "name": "pulse",
+                    "value": int(time.time() * 1000)
+                }
+                status = self.database.update(where=where, set=set)
 
-        PARASER.add_argument('who', type=str, help='Device Key')
-        args = PARASER.parse_args(strict=True)
-        if args["who"] is not None and args["who"] != "": 
-            self.key = args["who"]
-            
-            status = self.database.update(self.key)
+                if status is True:
+                    return "Pulsed", 200
+                else:
+                    return "Device not found", 404
+            else:
+                return "The request has unfulfilled fields", 401
 
+        elif path[2] == "update":
+            PARASER.add_argument('key', type=str, help='Device key')
+            PARASER.add_argument('fields', type=str, help='Fields to be updated')
+            args = PARASER.parse_args(strict=True)
+
+            self.key = args["key"]
+            status = LibDevice().is_exists(self.key)
             if status is True:
-                return "Pulsed", 200
+                where = {
+                    "name": "key",
+                    "value": self.key
+                }
+                if args["fields"] is not None and args["fields"] != "":
+                    fields = json.loads(args["fields"])
+                    if "ip" in fields:
+                        self.ip = fields["ip"]
+                        set = {
+                            "name": "ip",
+                            "value": self.ip
+                        }
+                        self.database.update(where=where, set=set)
+
+                    if "port" in fields:
+                        self.port = fields["port"]
+                        set = {
+                            "name": "port",
+                            "value": self.port
+                        }
+                        self.database.update(where=where, set=set)
+                    if "zone" in fields:
+                        self.zone = fields["zone"]
+                        set = {
+                            "name": "zone",
+                            "value": self.zone
+                        }
+                        self.database.update(where=where, set=set)
+                    if "type" in fields:
+                        self.type = fields["type"]
+                        set = {
+                            "name": "type",
+                            "value": self.type
+                        }
+                        self.database.update(where=where, set=set)
+                    if "name" in fields:
+                        self.name = fields["name"]
+                        set = {
+                            "name": "name",
+                            "value": self.name
+                        }
+                        self.database.update(where=where, set=set)
+                    # update device uuid
+                    details = LibDevice().details(self.key)
+                    device = {
+                        "ip": details["ip"],
+                        "port": details["port"],
+                        "zone": details["zone"],
+                        "type": details["type"],
+                        "name": details["name"]
+                    }
+
+                    self.uuid = Key().uuid(device)
+                    set = {
+                            "name": "uuid",
+                            "value": self.uuid
+                        }
+                    self.database.update(where=where, set=set)
+                else:
+                    return "Device is not updated", 401
+                
+                return "Device is updated", 200
             else:
                 return "Device not found", 404
         else:
-            return "The request has unfulfilled fields", 401
-
+            return "", 404
     

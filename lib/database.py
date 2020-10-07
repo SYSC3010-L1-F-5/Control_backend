@@ -12,7 +12,6 @@
 import os
 import sqlite3
 import pathlib
-import time
 
 from lib.libconfig import LibConfig
 CONFIG = LibConfig().fetch()
@@ -233,7 +232,7 @@ class Database:
 
         return data
 
-    def update(self, data):
+    def update(self, where, set):
         """
 
             This method update data in databse table
@@ -253,33 +252,33 @@ class Database:
         
         status = self.__connect_db()
 
-        where=None
-        set=None
+        # where=None
+        # set=None
 
-        if self.table == "devices":
-            where = {
-                "name": "key",
-                "value": data
-            }
-            set = {
-                "name": "pulse",
-                "value": int(time.time() * 1000)
-            }
-        elif self.table == "events":
-            where = {
-                    "name": "uuid",
-                    "value": data["uuid"]
-            }
-            if data["type"] == "hidden":
-                set = {
-                    "name": "hidden",
-                    "value": data["hidden"]
-                }
-            elif data["type"] == "details":
-                set = {
-                    "name": "details",
-                    "value": data["details"]
-                }
+        # if self.table == "devices":
+        #     where = {
+        #         "name": "key",
+        #         "value": data
+        #     }
+        #     set = {
+        #         "name": "pulse",
+        #         "value": int(time.time() * 1000)
+        #     }
+        # elif self.table == "events":
+        #     where = {
+        #             "name": "uuid",
+        #             "value": data["uuid"]
+        #     }
+        #     if data["type"] == "hidden":
+        #         set = {
+        #             "name": "hidden",
+        #             "value": data["hidden"]
+        #         }
+        #     elif data["type"] == "details":
+        #         set = {
+        #             "name": "details",
+        #             "value": data["details"]
+        #         }
 
         if status is True:
             status = self.__update_row(where, set)
