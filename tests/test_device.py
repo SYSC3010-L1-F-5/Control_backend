@@ -390,6 +390,72 @@ def test_pulse(app, client):
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
 
+def test_device_event(app, client):
+    # setup
+    events = [
+        dict(
+            who=keys["test"],
+            what="""{
+                "type": "motion_detected",
+                "data": "http://example.com"
+            }""",
+            when=1501240210993
+        ),
+        dict(
+            who=keys["test"],
+            what="""{
+                "type": "temperature",
+                "data": "30"
+            }""",
+            when=1501240210990
+        ),
+    ]
+
+    # sufficient case
+    # add events
+    res = client.post('/event/add', data=events[0])
+    print(events[0])
+    assert res.status_code == 200
+    events[0]["uuid"] = json.loads(res.get_data(as_text=True))["message"]
+    res = client.post('/event/add', data=events[1])
+    assert res.status_code == 200
+    events[1]["uuid"] = json.loads(res.get_data(as_text=True))["message"]
+
+    # test events
+    res = client.get('/device/{}'.format(keys["test"]))
+    assert res.status_code == 200
+    # test message
+    test_events = [
+        dict(
+            uuid=events[0]["uuid"],
+            device="",
+            time=events[0]["when"],
+            type=json.loads(events[0]["what"])["type"],
+            details=json.loads(events[0]["what"])["data"],
+            hidden=0
+        ),
+        dict(
+            uuid=events[1]["uuid"],
+            device="",
+            time=events[1]["when"],
+            type=json.loads(events[1]["what"])["type"],
+            details=json.loads(events[1]["what"])["data"],
+            hidden=0
+        )
+    ]
+    actual = json.loads(res.get_data(as_text=True))
+    assert test_events == actual["message"]["events"]
+
+    # tear down
+    res = client.delete('/event/delete', data=dict(
+        which=events[0]["uuid"]
+    ))
+    assert res.status_code == 200
+    res = client.delete('/event/delete', data=dict(
+        which=events[1]["uuid"]
+    ))
+    assert res.status_code == 200
+
 # should be the last test
 def test_delete(app, client):
     global keys
