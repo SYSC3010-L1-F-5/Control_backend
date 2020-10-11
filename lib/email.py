@@ -2,9 +2,14 @@
 
     All email related methods will be here
 
-    Platform: Mailjet
     Emails WILL BE IN THE JUNK/SPAM FOLDER
-
+    curl -s --user 'api:YOUR_API_KEY' \
+    https://api.mailgun.net/v3/YOUR_DOMAIN_NAME/messages \
+    -F from='Excited User <mailgun@YOUR_DOMAIN_NAME>' \
+    -F to=YOU@YOUR_DOMAIN_NAME \
+    -F to=bar@example.com \
+    -F subject='Hello' \
+    -F text='Testing some Mailgun awesomeness!'
     Author: Haoyu Xu
 
 """
@@ -18,28 +23,15 @@ from lib.libconfig import LibConfig
 CONFIG = LibConfig().fetch()
 
 EMAIL = {
-    "user": "5bfd66678de399dab6322c0cfb0f972b",
-    "pass": "cc293aefb02f9e5d3b53264f124810a2",
-    "url": "https://api.mailjet.com/v3.1/send",
+    "user": "api",
+    "pass": "key-49668c4d190eba07505acf7afb620399",
+    "url": "https://api.mailgun.net/v3/sender-b.mail.railgun.co/messages",
     "template": """{{
-                    "Messages":[
-                        {{
-                        "From": {{
-                            "Email": "mailjet@halyul.party",
-                            "Name": "Home Surveillance System"
-                        }},
-                        "To": [
-                            {{
-                            "Email": "{user_email}",
-                            "Name": "{username}"
-                            }}
-                        ],
-                        "Subject": "[HSS] {subject}",
-                        "TextPart": "{content}",
-                        "HTMLPart": "<h3>Dear {username}, {subject}</h3><br />{content}",
-                        "CustomID": "{username}"
-                        }}
-                    ]
+                    "from": "Home Surveillance System <hx-hss@sender-b.mail.railgun.co>",
+                    "to": "{username} <{user_email}>",
+                    "subject": "[HSS] {subject}",
+                    "text": "{content}",
+                    "html": "<html><h3>Dear {username}, {subject}</h3><br />{content}</html>"
                 }}"""
 }
 
@@ -71,7 +63,7 @@ class Email:
 
             template = json.loads(EMAIL["template"].format(user_email=self.email, username="Admin", subject=self.__get_event(event["type"]), content=content))
 
-            response = requests.post(EMAIL["url"], json=template, headers={"'Content-Type":"application/json"}, auth=requests.auth.HTTPBasicAuth(EMAIL["user"], EMAIL["pass"]))
+            response = requests.post(EMAIL["url"], data=template, auth=(EMAIL["user"], EMAIL["pass"]))
 
             return response.status_code
         else:
