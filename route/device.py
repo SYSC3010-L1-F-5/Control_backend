@@ -71,8 +71,17 @@ class Device(Resource):
 
         """
 
+        # check url
+        urls = [
+            "/devices",
+            "/device/{key}".format(key=key)
+        ]
+        path = request.path
+        if path not in urls:
+            return "Incorrect HTTP Method", 400
+        
         # /deivces
-        if request.path.split("/")[1] == "devices":
+        if path.split("/")[1] == "devices":
 
             order = {
                 "name": "pulse",
@@ -88,7 +97,7 @@ class Device(Resource):
             return devices, 200
         
         # /device/<key>
-        if request.path.split("/")[2] == key:
+        if path.split("/")[2] == key:
             details = LibDevice().details(key)
             if details is not None:
                 events = LibEvent().device(key)
@@ -122,7 +131,15 @@ class Device(Resource):
         
         """
 
-        if request.path.split("/")[2] != "add":
+        # check url
+        urls = [
+            "/device/add"
+        ]
+        path = request.path
+        if path not in urls:
+            return "Incorrect HTTP Method", 400
+
+        if path.split("/")[2] != "add":
             return "", 404
         
         PARASER.add_argument('ip', type=str, help='Device IP')
@@ -180,7 +197,15 @@ class Device(Resource):
                 int: status code
         
         """
-        if request.path.split("/")[2] != "delete":
+        # check url
+        urls = [
+            "/device/delete"
+        ]
+        path = request.path
+        if path not in urls:
+            return "Incorrect HTTP Method", 400
+
+        if path.split("/")[2] != "delete":
             return "", 404
 
         PARASER.add_argument('key', type=str, help='Device Key')
@@ -213,8 +238,16 @@ class Device(Resource):
                 int: status code
         
         """
-        path = request.path.split("/")
-        if path[1] == "pulse":
+        # check url
+        urls = [
+            "/pulse",
+            "/device/update"
+        ]
+        path = request.path
+        if path not in urls:
+            return "Incorrect HTTP Method", 400
+
+        if path.split("/")[1] == "pulse":
             PARASER.add_argument('who', type=str, help='Device Key')
             args = PARASER.parse_args(strict=True)
             if args["who"] is not None and args["who"] != "": 
@@ -236,7 +269,7 @@ class Device(Resource):
             else:
                 return "The request has unfulfilled fields", 401
 
-        elif path[2] == "update":
+        elif path.split("/")[2] == "update":
             PARASER.add_argument('key', type=str, help='Device key')
             PARASER.add_argument('fields', type=str, help='Fields to be updated')
             args = PARASER.parse_args(strict=True)

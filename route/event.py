@@ -84,8 +84,17 @@ class Event(Resource):
 
         """
 
+        # check url
+        urls = [
+            "/events",
+            "/event/{uuid}".format(uuid=uuid)
+        ]
+        path = request.path
+        if path not in urls:
+            return "Incorrect HTTP Method", 400
+
         # /events
-        if request.path.split("/")[1] == "events":
+        if path.split("/")[1] == "events":
 
             order = {
                 "name": "time",
@@ -102,7 +111,7 @@ class Event(Resource):
             return events, 200
         
         # /event/<uuid>
-        if request.path.split("/")[2] == uuid:
+        if path.split("/")[2] == uuid:
             details = LIBEVENT.details(uuid)
             if details is not None:
                 details["device"] = LIBDEVICE.details(details["device"])
@@ -130,7 +139,15 @@ class Event(Resource):
         
         """
 
-        if request.path.split("/")[2] != "add":
+        # check url
+        urls = [
+            "/event/add"
+        ]
+        path = request.path
+        if path not in urls:
+            return "Incorrect HTTP Method", 400
+
+        if path.split("/")[2] != "add":
             return "", 404
 
         PARASER.add_argument('who', type=str, help='Device Access Key')
@@ -187,7 +204,15 @@ class Event(Resource):
                 int: status code
         
         """
-        if request.path.split("/")[2] != "delete":
+        # check url
+        urls = [
+            "/event/delete"
+        ]
+        path = request.path
+        if path not in urls:
+            return "Incorrect HTTP Method", 400
+
+        if path.split("/")[2] != "delete":
             return "", 404
 
         PARASER.add_argument('which', type=str, help='Event UUID')
@@ -219,7 +244,16 @@ class Event(Resource):
                 int: status code
         
         """
-        path = request.path.split("/")[2]
+        # check url
+        urls = [
+            "/event/clear",
+            "/event/update"
+        ]
+        path = request.path
+        if path not in urls:
+            return "Incorrect HTTP Method", 400
+
+        path =  path.split("/")[2]
         if path != "update" and path != "clear":
             return "", 404
 

@@ -1,7 +1,7 @@
+Flask_RESTful==0.3.8
 pytest==6.1.1
-Flask==1.0.2
 sense_hat==2.2.0
 requests==2.21.0
-Flask_RESTful==0.3.8
+Flask==1.0.2
 PyYAML==5.3.1
 secrets==1.0.2
