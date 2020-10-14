@@ -1,3 +1,12 @@
+"""
+
+    This tests route.deivce by using flask test
+    Tests includes route.device and lib.libdevice (used in route.device)
+
+    Author: Haoyu Xu
+
+"""
+
 import json
 import uuid
 import hashlib
@@ -40,6 +49,61 @@ def test_route(app, client):
 
     res = client.put('/pulse')
     assert res.status_code == 401
+
+    # test mismatched method and url
+    res = client.get('/device/add')
+    assert res.status_code == 400
+
+    res = client.get('/device/delete')
+    assert res.status_code == 400
+
+    res = client.get('/pulse')
+    assert res.status_code == 400
+
+    res = client.get('/device/update')
+    assert res.status_code == 400
+
+    res = client.post('/devices')
+    assert res.status_code == 400
+
+    res = client.post("/device/{key}".format(key=keys["dummy"]))
+    assert res.status_code == 500 # overrided by flask
+
+    res = client.post('/device/delete')
+    assert res.status_code == 400
+
+    res = client.post('/pulse')
+    assert res.status_code == 400
+
+    res = client.post('/device/update')
+    assert res.status_code == 400
+
+    res = client.delete('/devices')
+    assert res.status_code == 400
+
+    res = client.delete("/device/{key}".format(key=keys["dummy"]))
+    assert res.status_code == 500 # overrided by flask
+
+    res = client.delete('/device/add')
+    assert res.status_code == 400
+
+    res = client.delete('/pulse')
+    assert res.status_code == 400
+
+    res = client.delete('/device/update')
+    assert res.status_code == 400
+
+    res = client.put('/devices')
+    assert res.status_code == 400
+
+    res = client.put("/device/{key}".format(key=keys["dummy"]))
+    assert res.status_code == 500 # overrided by flask
+
+    res = client.put('/device/add')
+    assert res.status_code == 400
+
+    res = client.put('/device/delete')
+    assert res.status_code == 400
 
 # test add device
 def test_add(app, client):

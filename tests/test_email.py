@@ -1,3 +1,11 @@
+"""
+
+    This tests lib.email
+
+    Author: Haoyu Xu
+
+"""
+
 import time
 import pytest
 from lib.email import Email

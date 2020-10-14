@@ -1,3 +1,11 @@
+"""
+
+    This tests route.index by using flask test
+
+    Author: Haoyu Xu
+
+"""
+
 import json
 
 def test_index(app, client):

@@ -1,3 +1,12 @@
+"""
+
+    This tests route.config by using flask test
+    Tests includes route.config and lib.libconfig (used in route.config)
+
+    Author: Haoyu Xu
+
+"""
+
 import json
 import os
 import pathlib
