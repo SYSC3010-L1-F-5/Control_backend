@@ -15,13 +15,13 @@ from functools import wraps
 import time
 
 MESSAGES = {
-            "200": "HTTP 200 OK",
-            "400": "HTTP Bad Request",
-            "401": "HTTP Unauthorized",
-            "403": "Forbidden",
-            "404": "HTTP Not Found",
-            "500": "Internal Server Error"
-        }
+    "200": "HTTP 200 OK",
+    "400": "HTTP Bad Request",
+    "401": "HTTP Unauthorized",
+    "403": "Forbidden",
+    "404": "HTTP Not Found",
+    "500": "Internal Server Error"
+}
 
 class Message:
 

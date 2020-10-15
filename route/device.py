@@ -180,7 +180,7 @@ class Device(Resource):
             else:
                 return "Device exists", 403
         else:
-            return "The request has unfulfilled fields", 401
+            return "The request has unfulfilled fields", 400
 
     @MESSAGE.response
     def delete(self):
@@ -220,7 +220,7 @@ class Device(Resource):
             else:
                 return "Device not found", 404
         else:
-            return "The request has unfulfilled fields", 401
+            return "The request has unfulfilled fields", 400
             
     @MESSAGE.response
     def put(self):
@@ -266,7 +266,7 @@ class Device(Resource):
                 else:
                     return "Device not found", 404
             else:
-                return "The request has unfulfilled fields", 401
+                return "The request has unfulfilled fields", 400
 
         elif path.split("/")[2] == "update":
             PARASER.add_argument('key', type=str, help='Device key')
@@ -335,13 +335,13 @@ class Device(Resource):
                             }
                         self.database.update(where=where, set=set)
                     else:
-                        return "Device is not updated", 401
+                        return "Device is not updated", 400
                     
                     return "Device is updated", 200
                 else:
                     return "Device not found", 404
             else:
-                return "The request has unfulfilled fields", 401
+                return "The request has unfulfilled fields", 400
         else:
             return "", 404
     

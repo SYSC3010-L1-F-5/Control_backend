@@ -161,12 +161,18 @@ class Event(Resource):
 
             self.who = args["who"]
             self.what = json.loads(args["what"])
-            self.when = args["when"]
+            self.when = int(args["when"])
 
+            if self.what["type"] == ("temperature" or "humidity" or "pressure"):
+                try:
+                    int(self.what["data"])
+                except Exception as e:
+                    return str(e), 400
+                    
             event = {
                 "device": self.who,
                 "type": self.what["type"],
-                "details": self.what["data"],
+                "details": str(self.what["data"]),
                 "time": self.when
             }
 
@@ -194,7 +200,7 @@ class Event(Resource):
             else:
                 return "Duplicated event", 403
         else:
-            return "The request has unfulfilled fields", 401
+            return "The request has unfulfilled fields", 400
 
     @MESSAGE.response
     def delete(self):
@@ -233,7 +239,7 @@ class Event(Resource):
             else:
                 return "Event not found", 404
         else:
-            return "The request has unfulfilled fields", 401
+            return "The request has unfulfilled fields", 400
 
     @MESSAGE.response
     def put(self):
@@ -317,10 +323,10 @@ class Event(Resource):
                         }
                     self.database.update(where=where, set=set)
                 else:
-                    return "Event is not updated", 401
+                    return "Event is not updated", 400
 
                 return self.uuid, 200
             else:
                 return "Event not found", 404
         else:
-                return "The request has unfulfilled fields", 401
+                return "The request has unfulfilled fields", 400
