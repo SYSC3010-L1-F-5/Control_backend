@@ -222,7 +222,6 @@ class Device(Resource):
         else:
             return "The request has unfulfilled fields", 401
             
-
     @MESSAGE.response
     def put(self):
         """
@@ -273,74 +272,76 @@ class Device(Resource):
             PARASER.add_argument('key', type=str, help='Device key')
             PARASER.add_argument('fields', type=str, help='Fields to be updated')
             args = PARASER.parse_args(strict=True)
-
-            self.key = args["key"]
-            status = LibDevice().is_exists(self.key)
-            if status is True:
-                where = {
-                    "name": "key",
-                    "value": self.key
-                }
-                if args["fields"] is not None and args["fields"] != "":
-                    fields = json.loads(args["fields"])
-                    if "ip" in fields:
-                        self.ip = fields["ip"]
-                        set = {
-                            "name": "ip",
-                            "value": self.ip
-                        }
-                        self.database.update(where=where, set=set)
-
-                    if "port" in fields:
-                        self.port = fields["port"]
-                        set = {
-                            "name": "port",
-                            "value": self.port
-                        }
-                        self.database.update(where=where, set=set)
-                    if "zone" in fields:
-                        self.zone = fields["zone"]
-                        set = {
-                            "name": "zone",
-                            "value": self.zone
-                        }
-                        self.database.update(where=where, set=set)
-                    if "type" in fields:
-                        self.type = fields["type"]
-                        set = {
-                            "name": "type",
-                            "value": self.type
-                        }
-                        self.database.update(where=where, set=set)
-                    if "name" in fields:
-                        self.name = fields["name"]
-                        set = {
-                            "name": "name",
-                            "value": self.name
-                        }
-                        self.database.update(where=where, set=set)
-                    # update device uuid
-                    details = LibDevice().details(self.key)
-                    device = {
-                        "ip": details["ip"],
-                        "port": details["port"],
-                        "zone": details["zone"],
-                        "type": details["type"],
-                        "name": details["name"]
+            if args["key"] is not None and args["key"] != "": 
+                self.key = args["key"]
+                status = LibDevice().is_exists(self.key)
+                if status is True:
+                    where = {
+                        "name": "key",
+                        "value": self.key
                     }
+                    if args["fields"] is not None and args["fields"] != "":
+                        fields = json.loads(args["fields"])
+                        if "ip" in fields:
+                            self.ip = fields["ip"]
+                            set = {
+                                "name": "ip",
+                                "value": self.ip
+                            }
+                            self.database.update(where=where, set=set)
 
-                    self.uuid = Key().uuid(device)
-                    set = {
-                            "name": "uuid",
-                            "value": self.uuid
+                        if "port" in fields:
+                            self.port = fields["port"]
+                            set = {
+                                "name": "port",
+                                "value": self.port
+                            }
+                            self.database.update(where=where, set=set)
+                        if "zone" in fields:
+                            self.zone = fields["zone"]
+                            set = {
+                                "name": "zone",
+                                "value": self.zone
+                            }
+                            self.database.update(where=where, set=set)
+                        if "type" in fields:
+                            self.type = fields["type"]
+                            set = {
+                                "name": "type",
+                                "value": self.type
+                            }
+                            self.database.update(where=where, set=set)
+                        if "name" in fields:
+                            self.name = fields["name"]
+                            set = {
+                                "name": "name",
+                                "value": self.name
+                            }
+                            self.database.update(where=where, set=set)
+                        # update device uuid
+                        details = LibDevice().details(self.key)
+                        device = {
+                            "ip": details["ip"],
+                            "port": details["port"],
+                            "zone": details["zone"],
+                            "type": details["type"],
+                            "name": details["name"]
                         }
-                    self.database.update(where=where, set=set)
+
+                        self.uuid = Key().uuid(device)
+                        set = {
+                                "name": "uuid",
+                                "value": self.uuid
+                            }
+                        self.database.update(where=where, set=set)
+                    else:
+                        return "Device is not updated", 401
+                    
+                    return "Device is updated", 200
                 else:
-                    return "Device is not updated", 401
-                
-                return "Device is updated", 200
+                    return "Device not found", 404
             else:
-                return "Device not found", 404
+                return "The request has unfulfilled fields", 401
         else:
             return "", 404
     

@@ -48,7 +48,7 @@ Author: Haoyu Xu (haoyu.xu@carleton.ca)
 
 - `/event/<uuid>`: `GET`, get a specific event details from system. `message` will be json type or `null`, `200` is successful, `404` otherwise, working
 
-- `/user`: TBD, not in SYSC 3010 project scope
+- `/user`: TBD
 
 
 ## Plugins

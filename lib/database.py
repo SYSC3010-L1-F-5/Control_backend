@@ -33,11 +33,13 @@ TABLES = {
         ]
     },
     "users": {
-        "fields": { # TODO: not in SYSC 3010 project scope
+        "fields": {
             "username": "text",
             "password": "text",
             "email": "text",
-            "type": "text"
+            "type": "text",
+            "otp": "text",
+            "time": "numeric"
         },
         "verifications": [
             "username"
@@ -242,7 +244,8 @@ class Database:
 
             Args:
                 self: accessing global parameters
-                data: the data to be updated
+                where: the field to locate the data in the database
+                set:  the field to be updated
 
             Returns:
                 list: empty list if the operation failed
@@ -251,34 +254,6 @@ class Database:
         """
         
         status = self.__connect_db()
-
-        # where=None
-        # set=None
-
-        # if self.table == "devices":
-        #     where = {
-        #         "name": "key",
-        #         "value": data
-        #     }
-        #     set = {
-        #         "name": "pulse",
-        #         "value": int(time.time() * 1000)
-        #     }
-        # elif self.table == "events":
-        #     where = {
-        #             "name": "uuid",
-        #             "value": data["uuid"]
-        #     }
-        #     if data["type"] == "hidden":
-        #         set = {
-        #             "name": "hidden",
-        #             "value": data["hidden"]
-        #         }
-        #     elif data["type"] == "details":
-        #         set = {
-        #             "name": "details",
-        #             "value": data["details"]
-        #         }
 
         if status is True:
             status = self.__update_row(where, set)

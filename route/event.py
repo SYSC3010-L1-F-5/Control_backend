@@ -155,40 +155,46 @@ class Event(Resource):
         PARASER.add_argument('when', type=int, help='Unix Timestamp')
         args = PARASER.parse_args(strict=True)
 
-        self.who = args["who"]
-        self.what = json.loads(args["what"])
-        self.when = args["when"]
+        if args["who"] and args["what"] and args["when"] is not None \
+        and \
+        args["who"] and args["what"] and args["when"] != "":
 
-        event = {
-            "device": self.who,
-            "type": self.what["type"],
-            "details": self.what["data"],
-            "time": self.when
-        }
+            self.who = args["who"]
+            self.what = json.loads(args["what"])
+            self.when = args["when"]
 
-        self.uuid = Key().uuid(event)
-        is_exists = LIBDEVICE.is_exists(self.who)
-
-        if is_exists is False:
-            return "Who are you?", 404
-        else:
             event = {
-                "uuid": self.uuid,
                 "device": self.who,
                 "type": self.what["type"],
                 "details": self.what["data"],
-                "time": self.when,
-                "hidden": self.hidden
+                "time": self.when
             }
 
-        flag = self.database.insert(data=event)
+            self.uuid = Key().uuid(event)
+            is_exists = LIBDEVICE.is_exists(self.who)
 
-        if flag is True:
-            PLUGIN.on(event=event)
-            EMAIL.send(event=event)
-            return self.uuid, 200
+            if is_exists is False:
+                return "Who are you?", 404
+            else:
+                event = {
+                    "uuid": self.uuid,
+                    "device": self.who,
+                    "type": self.what["type"],
+                    "details": self.what["data"],
+                    "time": self.when,
+                    "hidden": self.hidden
+                }
+
+            flag = self.database.insert(data=event)
+
+            if flag is True:
+                PLUGIN.on(event=event)
+                EMAIL.send(event=event)
+                return self.uuid, 200
+            else:
+                return "Duplicated event", 403
         else:
-            return "Duplicated event", 403
+            return "The request has unfulfilled fields", 401
 
     @MESSAGE.response
     def delete(self):
@@ -218,13 +224,16 @@ class Event(Resource):
         PARASER.add_argument('which', type=str, help='Event UUID')
         args = PARASER.parse_args(strict=True)
 
-        self.uuid = args["which"]
-        status = self.database.remove(self.uuid)
+        if args["which"] is not None and args["which"] != "": 
+            self.uuid = args["which"]
+            status = self.database.remove(self.uuid)
 
-        if status is True:
-            return "Event is deleted", 200
+            if status is True:
+                return "Event is deleted", 200
+            else:
+                return "Event not found", 404
         else:
-            return "Event not found", 404
+            return "The request has unfulfilled fields", 401
 
     @MESSAGE.response
     def put(self):
@@ -267,48 +276,51 @@ class Event(Resource):
             return "OK", 200
 
         # /event/update
-        self.uuid = args["which"]
+        if args["which"] is not None and args["which"] != "": 
+            self.uuid = args["which"]
 
-        status = LIBEVENT.is_exists(self.uuid)
+            status = LIBEVENT.is_exists(self.uuid)
 
-        if status is True:
-            where = {
-                    "name": "uuid",
-                    "value": self.uuid
-            }
-            if args["fields"] is not None and args["fields"] != "":
-                fields = json.loads(args["fields"])
-                if "hidden" in fields:
-                    self.hidden = fields["hidden"]
-                    set = {
-                        "name": "hidden",
-                        "value": self.hidden
-                    }
-                    self.database.update(where=where, set=set)
-                if "what" in fields:
-                    self.what = fields["what"]
-                    set = {
-                        "name": "details",
-                        "value": self.what
-                    }
-                    self.database.update(where=where, set=set)
-                # update event uuid
-                details = LibEvent().details(self.uuid)
-                event = {
-                    "device": details["device"],
-                    "type": details["type"],
-                    "details": details["details"],
-                    "time": details["time"]
-                }
-                self.uuid = Key().uuid(event)
-                set = {
+            if status is True:
+                where = {
                         "name": "uuid",
                         "value": self.uuid
+                }
+                if args["fields"] is not None and args["fields"] != "":
+                    fields = json.loads(args["fields"])
+                    if "hidden" in fields:
+                        self.hidden = fields["hidden"]
+                        set = {
+                            "name": "hidden",
+                            "value": self.hidden
+                        }
+                        self.database.update(where=where, set=set)
+                    if "what" in fields:
+                        self.what = fields["what"]
+                        set = {
+                            "name": "details",
+                            "value": self.what
+                        }
+                        self.database.update(where=where, set=set)
+                    # update event uuid
+                    details = LibEvent().details(self.uuid)
+                    event = {
+                        "device": details["device"],
+                        "type": details["type"],
+                        "details": details["details"],
+                        "time": details["time"]
                     }
-                self.database.update(where=where, set=set)
-            else:
-                return "Event is not updated", 401
+                    self.uuid = Key().uuid(event)
+                    set = {
+                            "name": "uuid",
+                            "value": self.uuid
+                        }
+                    self.database.update(where=where, set=set)
+                else:
+                    return "Event is not updated", 401
 
-            return self.uuid, 200
+                return self.uuid, 200
+            else:
+                return "Event not found", 404
         else:
-            return "Event not found", 404
+                return "The request has unfulfilled fields", 401
