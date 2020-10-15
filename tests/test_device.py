@@ -1,7 +1,13 @@
 """
 
     This tests route.deivce by using flask test
-    Tests includes route.device and lib.libdevice (used in route.device)
+
+    Tests includes:
+        - route.device
+        - lib.libdevice
+        - lib.key
+        - lib.database
+        - lib.libevent
 
     Author: Haoyu Xu
 
@@ -36,19 +42,22 @@ def test_route(app, client):
     assert res.status_code == 500
 
     res = client.post('/device/add')
-    assert res.status_code == 401
+    assert res.status_code == 400
 
     res = client.delete('/device/{}'.format(keys["dummy"]))
     assert res.status_code == 500
 
     res = client.delete('/device/delete')
-    assert res.status_code == 401
+    assert res.status_code == 400
 
     res = client.put('/device/{}'.format(keys["dummy"]))
     assert res.status_code == 500
 
     res = client.put('/pulse')
-    assert res.status_code == 401
+    assert res.status_code == 400
+
+    res = client.put('/device/update')
+    assert res.status_code == 400
 
     # test mismatched method and url
     res = client.get('/device/add')
@@ -228,27 +237,27 @@ def test_add(app, client):
     # test missing field
     res = client.post('/device/add', data=dict(
         ip="10.0.0.1",
-        port="test",
+        port=90,
         zone="kitchen",
         type="camera"
     ))
-    assert res.status_code == 500
+    assert res.status_code == 400
     # test status_code
-    expected = "400 Bad Request: The browser (or proxy) sent a request that this server could not understand."
+    expected = "The request has unfulfilled fields"
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
 
     # test empty field
     res = client.post('/device/add', data=dict(
         ip="10.0.0.1",
-        port="test",
+        port=90,
         zone="kitchen",
         type="camera",
-        name=" "
+        name=""
     ))
-    assert res.status_code == 500
+    assert res.status_code == 400
     # test status_code
-    expected = "400 Bad Request: The browser (or proxy) sent a request that this server could not understand."
+    expected = "The request has unfulfilled fields"
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
 
@@ -384,7 +393,7 @@ def test_device_update(app, client):
         key=keys["test"],
         fields=""
     ))
-    assert res.status_code == 401
+    assert res.status_code == 400
     # test message
     expected = "Device is not updated"
     actual = json.loads(res.get_data(as_text=True))
@@ -394,7 +403,7 @@ def test_device_update(app, client):
     res = client.put('/device/update', data=dict(
         key=keys["test"]
     ))
-    assert res.status_code == 401
+    assert res.status_code == 400
     # test message
     expected = "Device is not updated"
     actual = json.loads(res.get_data(as_text=True))
@@ -674,7 +683,7 @@ def test_device_event(app, client):
             who=keys["test"],
             what="""{
                 "type": "temperature",
-                "data": "30"
+                "data": 30
             }""",
             when=1501240210990
         ),
@@ -683,7 +692,6 @@ def test_device_event(app, client):
     # sufficient case
     # add events
     res = client.post('/event/add', data=events[0])
-    print(events[0])
     assert res.status_code == 200
     events[0]["uuid"] = json.loads(res.get_data(as_text=True))["message"]
     res = client.post('/event/add', data=events[1])
@@ -708,7 +716,7 @@ def test_device_event(app, client):
             device="",
             time=events[1]["when"],
             type=json.loads(events[1]["what"])["type"],
-            details=json.loads(events[1]["what"])["data"],
+            details=str(json.loads(events[1]["what"])["data"]),
             hidden=0
         )
     ]
@@ -724,6 +732,7 @@ def test_device_event(app, client):
         which=events[1]["uuid"]
     ))
     assert res.status_code == 200
+
     res = client.put('/event/clear')
     assert res.status_code == 200
 
