@@ -155,12 +155,14 @@ class Event(Resource):
         PARASER.add_argument('when', type=int, help='Unix Timestamp')
         args = PARASER.parse_args(strict=True)
 
-        if args["who"] and args["what"] and args["when"] is not None \
-        and \
-        args["who"] and args["what"] and args["when"] != "":
+        self.who = args["who"]
+        self.what = args["what"]
+        self.when = args["when"]
 
-            self.who = args["who"]
-            self.what = json.loads(args["what"])
+        # python issue
+        if self.__is_empty_or_none(self.who, self.what, self.when) is False:
+
+            self.what = json.loads(self.what)
             self.when = int(args["when"])
 
             if self.what["type"] == ("temperature" or "humidity" or "pressure"):
@@ -330,3 +332,30 @@ class Event(Resource):
                 return "Event not found", 404
         else:
                 return "The request has unfulfilled fields", 400
+    
+    def __is_empty_or_none(self, *argv):
+        """
+
+            Check if there is a empty or None in the args
+
+            Args:
+                self: access global variables
+                *argv: argument(s) to check if is None or "" or " " with spaces
+            
+            Returns:
+                bool: True if exists, False otherwise
+
+        """
+        is_exists = True
+
+        for arg in argv:
+            if arg is None:
+                is_exists = True
+                break
+            elif str(arg).replace(" ", "") == "":
+                is_exists = True
+                break
+            else:
+                is_exists = False
+        
+        return is_exists

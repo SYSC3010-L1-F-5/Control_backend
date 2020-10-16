@@ -148,15 +148,13 @@ class Device(Resource):
         PARASER.add_argument('type', type=str, help='Device Type')
         PARASER.add_argument('name', type=str, help='Device Name')
         args = PARASER.parse_args(strict=True)
+        self.ip = args["ip"]
+        self.port = args["port"]
+        self.zone = args["zone"]
+        self.type = args["type"]
+        self.name = args["name"]
         
-        if args["ip"] and args["port"] and args["zone"] and args["type"] and args["name"] is not None \
-        and \
-        args["ip"] and args["port"] and args["zone"] and args["type"] and args["name"] != "":
-            self.ip = args["ip"]
-            self.port = args["port"]
-            self.zone = args["zone"]
-            self.type = args["type"]
-            self.name = args["name"]
+        if self.__is_empty_or_none(self.ip, self.port, self.zone, self.type, self.name) is False:
 
             device = {
                 "ip": self.ip,
@@ -345,3 +343,30 @@ class Device(Resource):
         else:
             return "", 404
     
+    def __is_empty_or_none(self, *argv):
+        """
+
+            Check if there is a empty or None in the args
+
+            Args:
+                self: access global variables
+                *argv: argument(s) to check if is None or "" or " " with spaces
+            
+            Returns:
+                bool: True if exists, False otherwise
+
+        """
+        is_exists = True
+
+        for arg in argv:
+            if arg is None:
+                is_exists = True
+                break
+            elif str(arg).replace(" ", "") == "":
+                is_exists = True
+                break
+            else:
+                is_exists = False
+        
+        return is_exists
+        

@@ -13,6 +13,7 @@
 """
 from functools import wraps
 import time
+import re
 
 MESSAGES = {
     "200": "HTTP 200 OK",
@@ -53,12 +54,14 @@ class Message:
                 }
                 return result, status_code
             except Exception as e:
+                status_code = re.sub(r'[\D]', '', str(e))
+                message = re.sub(r'[^\D\s]', '', str(e)).lstrip()
                 result = {
-                    "message": self.message(500, str(e)),
-                    "status_code": 500,
+                    "message": self.message(status_code, message),
+                    "status_code": status_code,
                     "time": int(time.time() * 1000)
                 }
-                return result, 500
+                return result, status_code
         return wrapper
 
     def errorhandler(self, status_code):

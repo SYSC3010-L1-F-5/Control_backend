@@ -120,7 +120,7 @@ def test_add(app, client):
     # sufficient case
     res = client.post('/device/add', data=dict(
         ip="10.0.0.1",
-        port="90",
+        port=90,
         zone="kitchen",
         type="camera",
         name="test"

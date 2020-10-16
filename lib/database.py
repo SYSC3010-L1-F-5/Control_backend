@@ -444,7 +444,7 @@ class Database:
                     else:
                         flags.append(False)
                 
-                if False not in flags:
+                if all(flags):
                     flag = True
                     break
                 else:

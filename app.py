@@ -18,7 +18,7 @@ API = Api(APP)
 Database().create()
 
 @APP.errorhandler(400)
-def not_found(error):
+def bad_request(error):
     return make_response(jsonify(MESSAGE.errorhandler(400)), 400)
 
 @APP.errorhandler(404)
