@@ -309,9 +309,9 @@ def test_add(app, client):
         }""",
         when="test"
     ))
-    assert res.status_code == 500
+    assert res.status_code == 400
     # test status_code
-    expected = "400 Bad Request: The browser (or proxy) sent a request that this server could not understand."
+    expected = "Bad Request: The browser (or proxy) sent a request that this server could not understand."
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
 
