@@ -27,6 +27,15 @@ keys = {
     "dummy": "Ee_M7mT9wuoeOn8I1GYtC6NQ5EgXyKLZ6tGbyiTA_b0"
 }
 
+PRE_DEVICES = []
+
+def test_setup(app, client):
+    global PRE_DEVICES
+    res = client.get('/devices')
+    assert res.status_code == 200
+    actual = json.loads(res.get_data(as_text=True))
+    PRE_DEVICES = actual["message"]
+
 # test routes
 def test_route(app, client):
     res = client.get('/devices')
@@ -809,6 +818,6 @@ def test_devices_empty(app, client):
     res = client.get('/devices')
     assert res.status_code == 200
     # test status_code
-    expected = []
+    expected = PRE_DEVICES
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]

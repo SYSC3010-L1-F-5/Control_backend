@@ -55,6 +55,8 @@ DEVICES_UUIDS = [
     str(uuid.UUID(hashlib.md5(str(DEVICES[1]).encode('utf-8')).hexdigest()))
 ]
 
+PRE_EVENTS = []
+
 # test routes
 def test_route(app, client):
     res = client.get('/events')
@@ -159,6 +161,12 @@ def test_setup(app, client):
     assert expected == actual["status_code"]
     keys["test1"] = actual["message"]
 
+    global PRE_EVENTS
+    res = client.get('/events')
+    assert res.status_code == 200
+    actual = json.loads(res.get_data(as_text=True))
+    PRE_EVENTS = actual["message"]
+
 # test add events
 def test_add(app, client):
     # sufficient case
@@ -201,8 +209,8 @@ def test_add(app, client):
     res = client.post('/event/add', data=dict(
         who=keys["test1"],
         what="""{
-            "type": "motion_detected",
-            "data": "http://example.com"
+            "type": "temperature",
+            "data": "30"
         }""",
         when=1501240210993
     ))
@@ -210,8 +218,8 @@ def test_add(app, client):
     # test status_code
     event = {
         "device": keys["test1"],
-        "type": "motion_detected",
-        "details": "http://example.com",
+        "type": "temperature",
+        "details": "30",
         "time": 1501240210993
     }
     expected = str(uuid.UUID(hashlib.md5(str(event).encode('utf-8')).hexdigest()))
@@ -392,8 +400,8 @@ def test_event_key(app, client):
         uuid=uuids["who2"],
         device=DEVICES[1],
         time=1501240210993,
-        type="motion_detected",
-        details="http://example.com",
+        type="temperature",
+        details="30",
         hidden=0
     )
     event["device"]["uuid"] = DEVICES_UUIDS[1]
@@ -540,7 +548,7 @@ def test_event_update(app, client):
 
     # sufficient who2 case
     fields = dict(
-        what="https://example.com/123"
+        what="10"
     )
     res = client.put('/event/update', data=dict(
         which=uuids["who2"],
@@ -550,8 +558,8 @@ def test_event_update(app, client):
     # test message
     event = {
         "device": keys["test1"],
-        "type": "motion_detected",
-        "details": "https://example.com/123",
+        "type": "temperature",
+        "details": "10",
         "time": 1501240210993
     }
     expected = str(uuid.UUID(hashlib.md5(str(event).encode('utf-8')).hexdigest()))
@@ -565,8 +573,8 @@ def test_event_update(app, client):
         uuid=uuids["who2"],
         device=DEVICES[1],
         time=1501240210993,
-        type="motion_detected",
-        details="https://example.com/123",
+        type="temperature",
+        details="10",
         hidden=0
     )
     event["device"]["uuid"] = DEVICES_UUIDS[1]
@@ -732,6 +740,6 @@ def test_events_empty(app, client):
     res = client.get('/events')
     assert res.status_code == 200
     # test status_code
-    expected = []
+    expected = PRE_EVENTS
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
