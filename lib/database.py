@@ -39,7 +39,7 @@ TABLES = {
             "email": "text",
             "type": "text",
             "otp": "text",
-            "time": "numeric"
+            "otp_time": "numeric"
         },
         "verifications": [
             "username"
