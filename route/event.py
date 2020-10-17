@@ -33,8 +33,7 @@ from lib.key import Key
 from lib.email import Email
 EMAIL = Email()
 
-from lib.message import Message
-MESSAGE = Message()
+from lib.message import response
 
 from lib.libdevice import LibDevice
 LIBDEVICE = LibDevice()
@@ -67,7 +66,7 @@ class Event(Resource):
         self.uuid = None
         self.hidden = 0
 
-    @MESSAGE.response
+    @response
     def get(self, uuid=None):
         """
 
@@ -123,7 +122,7 @@ class Event(Resource):
         
         return "", 404
 
-    @MESSAGE.response
+    @response
     def post(self):
         """
         
@@ -204,7 +203,7 @@ class Event(Resource):
         else:
             return "The request has unfulfilled fields", 400
 
-    @MESSAGE.response
+    @response
     def delete(self):
         """
         
@@ -243,7 +242,7 @@ class Event(Resource):
         else:
             return "The request has unfulfilled fields", 400
 
-    @MESSAGE.response
+    @response
     def put(self):
         """
         

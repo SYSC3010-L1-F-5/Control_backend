@@ -7,6 +7,7 @@
 
     TODO:
         - send an email when a device is offline/online
+        - enable or disable device
 
     Author: Haoyu Xu
 
@@ -25,8 +26,7 @@ from lib.libdevice import LibDevice
 from lib.libevent import LibEvent
 
 
-from lib.message import Message
-MESSAGE = Message()
+from lib.message import response
 
 PARASER = reqparse.RequestParser()
 
@@ -54,7 +54,7 @@ class Device(Resource):
         self.uuid = None
         self.database = Database("devices")
 
-    @MESSAGE.response
+    @response
     def get(self, key=None):
         """
 
@@ -116,7 +116,7 @@ class Device(Resource):
         
         return "", 404
 
-    @MESSAGE.response
+    @response
     def post(self):
         """
         
@@ -180,7 +180,7 @@ class Device(Resource):
         else:
             return "The request has unfulfilled fields", 400
 
-    @MESSAGE.response
+    @response
     def delete(self):
         """
         
@@ -220,7 +220,7 @@ class Device(Resource):
         else:
             return "The request has unfulfilled fields", 400
             
-    @MESSAGE.response
+    @response
     def put(self):
         """
         

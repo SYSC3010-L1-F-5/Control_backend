@@ -8,9 +8,8 @@ from route.index import Index
 from route.user import User
 
 from lib.database import Database
-from lib.message import Message
+from lib.message import errorhandler
 
-MESSAGE = Message()
 APP = Flask(__name__)
 API = Api(APP)
 
@@ -19,15 +18,15 @@ Database().create()
 
 @APP.errorhandler(400)
 def bad_request(error):
-    return make_response(jsonify(MESSAGE.errorhandler(400)), 400)
+    return make_response(jsonify(errorhandler(400)), 400)
 
 @APP.errorhandler(404)
 def not_found(error):
-    return make_response(jsonify(MESSAGE.errorhandler(404)), 404)
+    return make_response(jsonify(errorhandler(404)), 404)
 
 @APP.errorhandler(500)
 def server_error(error):
-    return make_response(jsonify(MESSAGE.errorhandler(500)), 500)
+    return make_response(jsonify(errorhandler(500)), 500)
 
 API.add_resource(Index, '/')
 API.add_resource(Config, '/config')
@@ -39,7 +38,7 @@ API.add_resource(Device,
     "/devices",
     "/pulse"
     )
-# api.add_resource(User, '/user')
+API.add_resource(User, '/user')
 API.add_resource(Event, 
     "/events",
     "/event/add",

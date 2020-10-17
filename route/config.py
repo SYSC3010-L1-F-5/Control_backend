@@ -7,8 +7,7 @@
 from flask_restful import Resource
 from lib.libconfig import LibConfig
 
-from lib.message import Message
-MESSAGE = Message()
+from lib.message import response
 
 class Config(Resource):
 
@@ -20,7 +19,7 @@ class Config(Resource):
         """
         self.config = LibConfig().fetch()
 
-    @MESSAGE.response
+    @response
     def get(self):
         """
 
