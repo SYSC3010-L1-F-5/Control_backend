@@ -87,3 +87,20 @@ class Key:
         """
 
         return self.key
+
+    def sha256(self, seed):
+        """
+
+            This method generates sha256 of a string
+
+            Arg:
+                seed: a string to generate msha256
+
+            Returns:
+                string: uuid
+            
+        """
+
+        self.key = str(hashlib.sha256(str(seed).encode('utf-8')).hexdigest())
+        
+        return self.key
