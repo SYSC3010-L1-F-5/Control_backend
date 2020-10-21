@@ -27,8 +27,6 @@
 
 import json
 from flask_restful import Resource, reqparse, request
-from lib.database import Database
-from lib.key import Key
 
 from lib.email import Email
 EMAIL = Email()
@@ -59,7 +57,6 @@ class Event(Resource):
             self.hidden: 0 for not hidden, 1 for hidden
 
         """
-        self.database = Database("events")
         self.who = None
         self.what = None
         self.when = None
@@ -95,12 +92,7 @@ class Event(Resource):
         # /events
         if path.split("/")[1] == "events":
 
-            order = {
-                "name": "time",
-                "value": "DESC"
-            }
-
-            events = self.database.get(order=order)
+            events = LIBEVENT.get_all_events()
             if events is not None:
                 for item in events:
                     item["device"] = LIBDEVICE.details(item["device"])
@@ -170,31 +162,21 @@ class Event(Resource):
                 except Exception as e:
                     return str(e), 400
                     
-            event = {
-                "device": self.who,
-                "type": self.what["type"],
-                "details": str(self.what["data"]),
-                "time": self.when
-            }
-
-            self.uuid = Key().uuid(event)
             is_exists = LIBDEVICE.is_exists(self.who)
 
             if is_exists is False:
                 return "Who are you?", 404
             else:
                 event = {
-                    "uuid": self.uuid,
                     "device": self.who,
                     "type": self.what["type"],
-                    "details": self.what["data"],
-                    "time": self.when,
-                    "hidden": self.hidden
+                    "details": str(self.what["data"]),
+                    "time": self.when
                 }
 
-            flag = self.database.insert(data=event)
+                self.uuid = LIBEVENT.add_event(event)
 
-            if flag is True:
+            if self.uuid is not None:
                 PLUGIN.on(event=event)
                 EMAIL.send(event=event)
                 return self.uuid, 200
@@ -233,9 +215,9 @@ class Event(Resource):
 
         if args["which"] is not None and args["which"] != "": 
             self.uuid = args["which"]
-            status = self.database.remove(self.uuid)
+            is_deleted = LIBEVENT.delete_event(self.uuid)
 
-            if status is True:
+            if is_deleted is True:
                 return "Event is deleted", 200
             else:
                 return "Event not found", 404
@@ -301,28 +283,31 @@ class Event(Resource):
                             "name": "hidden",
                             "value": self.hidden
                         }
-                        self.database.update(where=where, set=set)
+                        LIBEVENT.update_event(self.uuid, set)
+
                     if "what" in fields:
                         self.what = fields["what"]
                         set = {
                             "name": "details",
                             "value": self.what
                         }
-                        self.database.update(where=where, set=set)
+                        LIBEVENT.update_event(self.uuid, set)
+
                     # update event uuid
-                    details = LibEvent().details(self.uuid)
+                    details = LIBEVENT.details(self.uuid)
                     event = {
                         "device": details["device"],
                         "type": details["type"],
                         "details": details["details"],
                         "time": details["time"]
                     }
-                    self.uuid = Key().uuid(event)
+                    old_uuid = self.uuid
+                    self.uuid = LIBEVENT.uuid(event)
                     set = {
-                            "name": "uuid",
-                            "value": self.uuid
-                        }
-                    self.database.update(where=where, set=set)
+                        "name": "uuid",
+                        "value": self.uuid
+                    }
+                    LIBEVENT.update_event(old_uuid, set)
                 else:
                     return "Event is not updated", 400
 
