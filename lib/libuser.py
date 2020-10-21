@@ -4,6 +4,7 @@ from lib.database import Database
 from lib.key import Key
 from lib.libconfig import LibConfig
 CONFIG = LibConfig().fetch()
+import hashlib
 
 class LibUser:
 
@@ -32,24 +33,25 @@ class LibUser:
         for key, value in users.items():
             user = {
                 "username": key,
-                "password": value
+                "password": Key().md5(value)
             }
-            user_uuid = Key().uuid(user)
+            
+            user_uuid = self.uuid(";".join("{field_key}:{field_value}".format(field_key=field_key, field_value=field_value) for field_key, field_value in user.items()))
             item_struct = {
                 "uuid": user_uuid,
-                "username": key,
-                "password": value,
+                "username": user["username"],
+                "password": user["password"],
                 "email": "",
-                "type": "",
+                "type": "root",
                 "otp": "",
                 "otp_time": -1
             }
             is_inserted = self.database.insert(data=item_struct)
 
             if is_inserted is True:
-                print("User {user} is initialized".format(user=key))
+                print("User {user} {uuid} is initialized".format(user=key, uuid=user_uuid))
             else:
-                print("User {user} already exists or failed to initialize".format(user=key))
+                print("User {user} {uuid} already exists or failed to initialize".format(user=key, uuid=user_uuid))
         
     def is_exists(self, uuid):
         """
@@ -172,3 +174,43 @@ class LibUser:
             return None
         else:
             return data[0]
+
+    def update_user(self, uuid, set):
+        """
+
+            Update an existing user
+
+            Args:
+                self: access global variables
+                uuid: user uuid
+                set: field to be updated
+
+            Returns:
+                boolean: True if successful, Falase otherwise
+
+        """
+        is_exists = self.is_exists(uuid)
+        is_updated = False
+        if is_exists is True:
+            where = {
+                "name": "uuid",
+                "value": uuid
+            }
+            is_updated = self.database.update(where=where, set=set)
+
+        return is_updated
+        
+    def uuid(self, details):
+        """
+
+            Return uuid of specfic details
+
+            Args:
+                self: access global variables
+                details: detials to get uuid
+            
+            Returns:
+                string: uuid
+
+        """
+        return Key().sha256(details)

@@ -13,7 +13,7 @@
         - PUT /set/: user setting related
 
 """
-
+import json
 from flask_restful import Resource, reqparse, request
 from lib.message import response
 from lib.libuser import LibUser
@@ -139,16 +139,56 @@ class User(Resource):
         if path.split("/")[2] == "update":
             PARASER.add_argument('X-UUID', type=str, location='headers', help='User UUID')
             PARASER.add_argument('X-OTP', type=str, location='headers', help='User OTP')
+            PARASER.add_argument('fields', type=str, help='Fields to be updated')
             args = PARASER.parse_args(strict=True)
             self.uuid = args["X-UUID"]
             self.otp = args["X-OTP"]
+            fields = args["fields"]
 
-            if self.__is_empty_or_none(self.uuid, self.otp) is False:
+            if self.__is_empty_or_none(self.uuid, self.otp, fields) is False:
                 if LIBUSER.check_otp(uuid=self.uuid, otp=self.otp) is False:
+                    fields = json.loads(args["fields"])
+
+                    if "username" in fields:
+                        set = {
+                            "name": "username",
+                            "value": fields["username"]
+                        }
+                        LIBUSER.update_user(self.uuid, set)
+
+                    if "password" in fields:
+                        set = {
+                            "name": "password",
+                            "value": fields["password"]
+                        }
+                        LIBUSER.update_user(self.uuid, set)
                     
-                    return "", 200
+                    if "email" in fields:
+                        set = {
+                            "name": "email",
+                            "value": fields["email"]
+                        }
+                        LIBUSER.update_user(self.uuid, set)
+
+                    # update user uuid
+                    user_details = LIBUSER.details(self.uuid)
+                    user = {
+                        "username": user_details["username"],
+                        "password": user_details["password"]
+                    }
+                    old_uuid = self.uuid
+                    self.uuid = LIBUSER.uuid(user)
+                    set = {
+                        "name": "uuid",
+                        "value": self.uuid
+                    }
+                    LIBUSER.update_user(old_uuid, set)
+
+                    return "User is updated", 200
                 else:
                     return "You are unauthorized", 401
+            else:
+                return "The request has unfulfilled fields", 400
         else:
             return "", 404
 
