@@ -301,8 +301,9 @@ class Event(Resource):
                         "details": details["details"],
                         "time": details["time"]
                     }
+                    uuid_field = ";".join("{key}:{value}".format(key=key, value=value) for key, value in event.items())
                     old_uuid = self.uuid
-                    self.uuid = LIBEVENT.uuid(event)
+                    self.uuid = LIBEVENT.uuid(uuid_field)
                     set = {
                         "name": "uuid",
                         "value": self.uuid

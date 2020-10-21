@@ -112,7 +112,8 @@ class LibDevice:
                 string: device key if successful, None otherwise
 
         """
-        device_uuid = self.uuid(details)
+        uuid_field = ";".join("{key}:{value}".format(key=key, value=value) for key, value in details.items())
+        device_uuid = self.uuid(uuid_field)
         device_key = Key().generate()
         details["uuid"] = device_uuid
         details["key"] = device_key

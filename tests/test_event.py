@@ -51,8 +51,8 @@ DEVICES = [
 ]
 
 DEVICES_UUIDS = [
-    str(uuid.UUID(hashlib.md5(str(DEVICES[0]).encode('utf-8')).hexdigest())),
-    str(uuid.UUID(hashlib.md5(str(DEVICES[1]).encode('utf-8')).hexdigest()))
+    str(uuid.UUID(hashlib.md5(str(";".join("{key}:{value}".format(key=key, value=value) for key, value in DEVICES[0].items())).encode('utf-8')).hexdigest())),
+    str(uuid.UUID(hashlib.md5(str(";".join("{key}:{value}".format(key=key, value=value) for key, value in DEVICES[1].items())).encode('utf-8')).hexdigest()))
 ]
 
 PRE_EVENTS = []
@@ -186,7 +186,8 @@ def test_add(app, client):
         "details": "http://example.com",
         "time": 1501240210993
     }
-    expected = str(uuid.UUID(hashlib.md5(str(event).encode('utf-8')).hexdigest()))
+    uuid_field = ";".join("{key}:{value}".format(key=key, value=value) for key, value in event.items())
+    expected = str(uuid.UUID(hashlib.md5(str(uuid_field).encode('utf-8')).hexdigest()))
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
     uuids["who1"] = actual["message"]
@@ -222,7 +223,8 @@ def test_add(app, client):
         "details": "30",
         "time": 1501240210993
     }
-    expected = str(uuid.UUID(hashlib.md5(str(event).encode('utf-8')).hexdigest()))
+    uuid_field = ";".join("{key}:{value}".format(key=key, value=value) for key, value in event.items())
+    expected = str(uuid.UUID(hashlib.md5(str(uuid_field).encode('utf-8')).hexdigest()))
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
     uuids["who2"] = actual["message"]
@@ -259,7 +261,8 @@ def test_add(app, client):
         "details": "10",
         "time": 1501240210993
     }
-    expected = str(uuid.UUID(hashlib.md5(str(event).encode('utf-8')).hexdigest()))
+    uuid_field = ";".join("{key}:{value}".format(key=key, value=value) for key, value in event.items())
+    expected = str(uuid.UUID(hashlib.md5(str(uuid_field).encode('utf-8')).hexdigest()))
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
     uuids["what.type"] = actual["message"]
@@ -281,7 +284,8 @@ def test_add(app, client):
         "details": "http://example.org",
         "time": 1501240210993
     }
-    expected = str(uuid.UUID(hashlib.md5(str(event).encode('utf-8')).hexdigest()))
+    uuid_field = ";".join("{key}:{value}".format(key=key, value=value) for key, value in event.items())
+    expected = str(uuid.UUID(hashlib.md5(str(uuid_field).encode('utf-8')).hexdigest()))
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
     uuids["what.data"] = actual["message"]
@@ -303,7 +307,8 @@ def test_add(app, client):
         "details": "http://example.com",
         "time": 1500000000000
     }
-    expected = str(uuid.UUID(hashlib.md5(str(event).encode('utf-8')).hexdigest()))
+    uuid_field = ";".join("{key}:{value}".format(key=key, value=value) for key, value in event.items())
+    expected = str(uuid.UUID(hashlib.md5(str(uuid_field).encode('utf-8')).hexdigest()))
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
     uuids["when"] = actual["message"]
@@ -525,7 +530,8 @@ def test_event_update(app, client):
         "details": "https://example.com/1",
         "time": 1501240210993
     }
-    expected = str(uuid.UUID(hashlib.md5(str(event).encode('utf-8')).hexdigest()))
+    uuid_field = ";".join("{key}:{value}".format(key=key, value=value) for key, value in event.items())
+    expected = str(uuid.UUID(hashlib.md5(str(uuid_field).encode('utf-8')).hexdigest()))
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
     uuids["who1"] = actual["message"]
@@ -562,7 +568,8 @@ def test_event_update(app, client):
         "details": "10",
         "time": 1501240210993
     }
-    expected = str(uuid.UUID(hashlib.md5(str(event).encode('utf-8')).hexdigest()))
+    uuid_field = ";".join("{key}:{value}".format(key=key, value=value) for key, value in event.items())
+    expected = str(uuid.UUID(hashlib.md5(str(uuid_field).encode('utf-8')).hexdigest()))
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
     uuids["who2"] = actual["message"]
@@ -600,7 +607,8 @@ def test_event_update(app, client):
         "details": "30",
         "time": 1501240210993
     }
-    expected = str(uuid.UUID(hashlib.md5(str(event).encode('utf-8')).hexdigest()))
+    uuid_field = ";".join("{key}:{value}".format(key=key, value=value) for key, value in event.items())
+    expected = str(uuid.UUID(hashlib.md5(str(uuid_field).encode('utf-8')).hexdigest()))
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
     uuids["what.type"] = actual["message"]
@@ -638,7 +646,8 @@ def test_event_update(app, client):
         "details": "https://example.org/1",
         "time": 1501240210993
     }
-    expected = str(uuid.UUID(hashlib.md5(str(event).encode('utf-8')).hexdigest()))
+    uuid_field = ";".join("{key}:{value}".format(key=key, value=value) for key, value in event.items())
+    expected = str(uuid.UUID(hashlib.md5(str(uuid_field).encode('utf-8')).hexdigest()))
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
     uuids["what.data"] = actual["message"]

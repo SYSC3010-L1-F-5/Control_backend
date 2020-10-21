@@ -141,7 +141,8 @@ class LibEvent:
                 string: event uuid if successful, None otherwise
 
         """
-        event_uuid = self.uuid(details)
+        uuid_field = ";".join("{key}:{value}".format(key=key, value=value) for key, value in details.items())
+        event_uuid = self.uuid(uuid_field)
         details["uuid"] = event_uuid
         details["hidden"] = 0
 
@@ -195,5 +196,4 @@ class LibEvent:
             }
             is_updated = self.database.update(where=where, set=set)
 
-        print(is_updated)
         return is_updated

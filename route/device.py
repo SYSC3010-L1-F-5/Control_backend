@@ -306,8 +306,8 @@ class Device(Resource):
                             "type": details["type"],
                             "name": details["name"]
                         }
-
-                        self.uuid = LIBDEVICE.uuid(device)
+                        uuid_field = ";".join("{key}:{value}".format(key=key, value=value) for key, value in device.items())
+                        self.uuid = LIBDEVICE.uuid(uuid_field)
                         set = {
                                 "name": "uuid",
                                 "value": self.uuid

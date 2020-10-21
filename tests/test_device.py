@@ -291,7 +291,8 @@ def test_device_key(app, client):
         type="camera",
         name="test"
     )
-    device_uuid = str(uuid.UUID(hashlib.md5(str(device).encode('utf-8')).hexdigest()))
+    uuid_field = ";".join("{key}:{value}".format(key=key, value=value) for key, value in device.items())
+    device_uuid = str(uuid.UUID(hashlib.md5(str(uuid_field).encode('utf-8')).hexdigest()))
     device["uuid"] = device_uuid
     device["key"] = ""
     device["pulse"] = -1
@@ -309,7 +310,8 @@ def test_device_key(app, client):
         type="camera",
         name="test"
     )
-    device_uuid = str(uuid.UUID(hashlib.md5(str(device).encode('utf-8')).hexdigest()))
+    uuid_field = ";".join("{key}:{value}".format(key=key, value=value) for key, value in device.items())
+    device_uuid = str(uuid.UUID(hashlib.md5(str(uuid_field).encode('utf-8')).hexdigest()))
     device["uuid"] = device_uuid
     device["key"] = ""
     device["pulse"] = -1
@@ -327,7 +329,8 @@ def test_device_key(app, client):
         type="camera",
         name="test"
     )
-    device_uuid = str(uuid.UUID(hashlib.md5(str(device).encode('utf-8')).hexdigest()))
+    uuid_field = ";".join("{key}:{value}".format(key=key, value=value) for key, value in device.items())
+    device_uuid = str(uuid.UUID(hashlib.md5(str(uuid_field).encode('utf-8')).hexdigest()))
     device["uuid"] = device_uuid
     device["key"] = ""
     device["pulse"] = -1
@@ -345,7 +348,8 @@ def test_device_key(app, client):
         type="camera",
         name="test"
     )
-    device_uuid = str(uuid.UUID(hashlib.md5(str(device).encode('utf-8')).hexdigest()))
+    uuid_field = ";".join("{key}:{value}".format(key=key, value=value) for key, value in device.items())
+    device_uuid = str(uuid.UUID(hashlib.md5(str(uuid_field).encode('utf-8')).hexdigest()))
     device["uuid"] = device_uuid
     device["key"] = ""
     device["pulse"] = -1
@@ -363,7 +367,8 @@ def test_device_key(app, client):
         type="temperature",
         name="test"
     )
-    device_uuid = str(uuid.UUID(hashlib.md5(str(device).encode('utf-8')).hexdigest()))
+    uuid_field = ";".join("{key}:{value}".format(key=key, value=value) for key, value in device.items())
+    device_uuid = str(uuid.UUID(hashlib.md5(str(uuid_field).encode('utf-8')).hexdigest()))
     device["uuid"] = device_uuid
     device["key"] = ""
     device["pulse"] = -1
@@ -381,7 +386,8 @@ def test_device_key(app, client):
         type="camera",
         name="test1"
     )
-    device_uuid = str(uuid.UUID(hashlib.md5(str(device).encode('utf-8')).hexdigest()))
+    uuid_field = ";".join("{key}:{value}".format(key=key, value=value) for key, value in device.items())
+    device_uuid = str(uuid.UUID(hashlib.md5(str(uuid_field).encode('utf-8')).hexdigest()))
     device["uuid"] = device_uuid
     device["key"] = ""
     device["pulse"] = -1
@@ -449,7 +455,8 @@ def test_device_update(app, client):
     assert res.status_code == 200
     # test message
     device = fields
-    device_uuid = str(uuid.UUID(hashlib.md5(str(device).encode('utf-8')).hexdigest()))
+    uuid_field = ";".join("{key}:{value}".format(key=key, value=value) for key, value in device.items())
+    device_uuid = str(uuid.UUID(hashlib.md5(str(uuid_field).encode('utf-8')).hexdigest()))
     device["uuid"] = device_uuid
     device["key"] = ""
     device["pulse"] = -1
@@ -479,7 +486,8 @@ def test_device_update(app, client):
         type="temperature",
         name="test1"
     )
-    device_uuid = str(uuid.UUID(hashlib.md5(str(device).encode('utf-8')).hexdigest()))
+    uuid_field = ";".join("{key}:{value}".format(key=key, value=value) for key, value in device.items())
+    device_uuid = str(uuid.UUID(hashlib.md5(str(uuid_field).encode('utf-8')).hexdigest()))
     device["uuid"] = device_uuid
     device["key"] = ""
     device["pulse"] = -1
@@ -509,7 +517,8 @@ def test_device_update(app, client):
         type="temperature",
         name="test1"
     )
-    device_uuid = str(uuid.UUID(hashlib.md5(str(device).encode('utf-8')).hexdigest()))
+    uuid_field = ";".join("{key}:{value}".format(key=key, value=value) for key, value in device.items())
+    device_uuid = str(uuid.UUID(hashlib.md5(str(uuid_field).encode('utf-8')).hexdigest()))
     device["uuid"] = device_uuid
     device["key"] = ""
     device["pulse"] = -1
@@ -539,7 +548,8 @@ def test_device_update(app, client):
         type="temperature",
         name="test1"
     )
-    device_uuid = str(uuid.UUID(hashlib.md5(str(device).encode('utf-8')).hexdigest()))
+    uuid_field = ";".join("{key}:{value}".format(key=key, value=value) for key, value in device.items())
+    device_uuid = str(uuid.UUID(hashlib.md5(str(uuid_field).encode('utf-8')).hexdigest()))
     device["uuid"] = device_uuid
     device["key"] = ""
     device["pulse"] = -1
@@ -569,7 +579,8 @@ def test_device_update(app, client):
         type="camera",
         name="test1"
     )
-    device_uuid = str(uuid.UUID(hashlib.md5(str(device).encode('utf-8')).hexdigest()))
+    uuid_field = ";".join("{key}:{value}".format(key=key, value=value) for key, value in device.items())
+    device_uuid = str(uuid.UUID(hashlib.md5(str(uuid_field).encode('utf-8')).hexdigest()))
     device["uuid"] = device_uuid
     device["key"] = ""
     device["pulse"] = -1
@@ -599,7 +610,8 @@ def test_device_update(app, client):
         type="camera",
         name="test"
     )
-    device_uuid = str(uuid.UUID(hashlib.md5(str(device).encode('utf-8')).hexdigest()))
+    uuid_field = ";".join("{key}:{value}".format(key=key, value=value) for key, value in device.items())
+    device_uuid = str(uuid.UUID(hashlib.md5(str(uuid_field).encode('utf-8')).hexdigest()))
     device["uuid"] = device_uuid
     device["key"] = ""
     device["pulse"] = -1
