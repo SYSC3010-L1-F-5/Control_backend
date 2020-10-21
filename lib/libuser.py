@@ -42,7 +42,7 @@ class LibUser:
                 "username": user["username"],
                 "password": user["password"],
                 "email": "",
-                "type": "root",
+                "type": "admin",
                 "otp": "",
                 "otp_time": -1
             }
@@ -52,6 +52,57 @@ class LibUser:
                 print("User {user} {uuid} is initialized".format(user=key, uuid=user_uuid))
             else:
                 print("User {user} {uuid} already exists or failed to initialize".format(user=key, uuid=user_uuid))
+
+    def add_user(self, details, user_type):
+        """
+
+            Add a new user to database
+
+            Args:
+                self: accessing global parameters
+                details: user details
+                user_type: user type
+
+            Returns:
+                bool: True if successful, False otherwise
+
+        """
+
+        user_uuid = self.uuid(";".join("{field_key}:{field_value}".format(field_key=field_key, field_value=field_value) for field_key, field_value in details.items()))
+        item_struct = {
+            "uuid": user_uuid,
+            "username": details["username"],
+            "password": details["password"],
+            "email": "",
+            "type": user_type,
+            "otp": "",
+            "otp_time": -1
+        }
+        is_inserted = self.database.insert(data=item_struct)
+
+        return is_inserted
+
+    def delete_user(self, uuid):
+        """
+
+            Delete an existing user in database
+
+            Args:
+                self: accessing global parameters
+                details: user details
+                user_type: user type
+
+            Returns:
+                bool: True if successful, False otherwise
+
+        """
+
+        is_exists = self.is_exists(uuid)
+        is_deleted = False
+        if is_exists is True:
+            is_deleted = self.database.remove(uuid)
+
+        return is_deleted
         
     def is_exists(self, uuid):
         """
@@ -148,6 +199,13 @@ class LibUser:
 
             Make an OTP expire when a user logout
 
+            Args:
+                self: accessing global parameters
+                uuid: user uuid
+
+            Returns:
+                boolean: True if expired, False otherwise
+
         """
         is_expired = False
         
@@ -234,3 +292,49 @@ class LibUser:
 
         """
         return Key().sha256(details)
+
+    def is_admin(self, uuid):
+        """
+
+            Check if a user is admin
+
+            Args:
+                self: access global variables
+                uuid: uuid
+            
+            Returns:
+                boolean: True if a user is admin, False otherwise
+
+        """
+        is_admin = False
+
+        user_details = self.details(uuid)
+
+        if user_details is not None:
+            is_admin = user_details["type"] == "admin"
+
+        return is_admin
+
+    def get_all_users(self):
+        """
+
+            Return all user details
+
+            Args:
+                self: access global variables
+            
+            Returns:
+                json: all delete_user details
+
+        """
+        order = {
+            "name": "username",
+            "value": "ASC"
+        }
+
+        users = self.database.get(order=order)
+
+        if len(users) == 0:
+            return None
+        else:
+            return users

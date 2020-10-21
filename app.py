@@ -40,9 +40,14 @@ API.add_resource(Device,
     "/pulse"
 )
 API.add_resource(User, 
+    '/user',
+    '/users',
     '/user/login',
+    '/user/add',
+    '/user/delete'
     '/user/update',
-    '/user'
+    '/user/logout',
+    '/user/<uuid>'
 )
 API.add_resource(Event, 
     "/events",
