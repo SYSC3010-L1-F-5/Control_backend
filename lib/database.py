@@ -34,6 +34,7 @@ TABLES = {
     },
     "users": {
         "fields": {
+            "uuid": "text",
             "username": "text",
             "password": "text",
             "email": "text",

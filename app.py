@@ -6,15 +6,16 @@ from route.device import Device
 from route.event import Event
 from route.index import Index
 from route.user import User
-
-from lib.database import Database
 from lib.message import errorhandler
-
-APP = Flask(__name__)
-API = Api(APP)
+from lib.database import Database
+from lib.libuser import LibUser
 
 # it seems that this line of code is called twice
 Database().create()
+LibUser().initialize()
+
+APP = Flask(__name__)
+API = Api(APP)
 
 @APP.errorhandler(400)
 def bad_request(error):
@@ -37,8 +38,12 @@ API.add_resource(Device,
     "/device/<key>",
     "/devices",
     "/pulse"
-    )
-API.add_resource(User, '/user')
+)
+API.add_resource(User, 
+    '/user/login',
+    '/user/update',
+    '/user'
+)
 API.add_resource(Event, 
     "/events",
     "/event/add",
@@ -46,7 +51,7 @@ API.add_resource(Event,
     "/event/update",
     "/event/clear",
     "/event/<uuid>"
-    )
+)
 
 if __name__ == '__main__':
     APP.run()

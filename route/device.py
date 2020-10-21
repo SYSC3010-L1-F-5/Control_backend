@@ -25,7 +25,6 @@ from lib.database import Database
 from lib.libdevice import LibDevice
 from lib.libevent import LibEvent
 
-
 from lib.message import response
 
 PARASER = reqparse.RequestParser()
