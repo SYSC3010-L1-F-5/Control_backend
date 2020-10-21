@@ -20,10 +20,10 @@
 import time
 import json
 from flask_restful import Resource, reqparse, request
-from lib.key import Key
-from lib.database import Database
 from lib.libdevice import LibDevice
+LIBDEVICE = LibDevice()
 from lib.libevent import LibEvent
+LIBEVENT = LibEvent()
 
 from lib.message import response
 
@@ -41,7 +41,6 @@ class Device(Resource):
             self.name: device name
             self.key: access key
             self.uuid: device uuid
-            self.database: connect to devices table in the databse
 
         """
         self.ip = None
@@ -51,7 +50,6 @@ class Device(Resource):
         self.name = None
         self.key = None
         self.uuid = None
-        self.database = Database("devices")
 
     @response
     def get(self, key=None):
@@ -82,12 +80,7 @@ class Device(Resource):
         # /deivces
         if path.split("/")[1] == "devices":
 
-            order = {
-                "name": "pulse",
-                "value": "DESC"
-            }
-
-            devices = self.database.get(order=order)
+            devices = LIBDEVICE.get_all_devices()
             if devices is not None:
                 # hide device key
                 for item in devices:
@@ -97,9 +90,9 @@ class Device(Resource):
         
         # /device/<key>
         if path.split("/")[2] == key:
-            details = LibDevice().details(key)
+            details = LIBDEVICE.details(key)
             if details is not None:
-                events = LibEvent().device(key)
+                events = LIBEVENT.device(key)
                 if events is not None:
                     # Hide the device key
                     for item in events:
@@ -163,16 +156,9 @@ class Device(Resource):
                 "name": self.name
             }
 
-            self.key = Key().generate()
-            self.uuid = Key().uuid(device)
+            self.key = LIBDEVICE.add_device(device)
 
-            device["pulse"] = -1
-            device["uuid"] = self.uuid
-            device["key"] = self.key
-
-            flag = self.database.insert(data=device)
-
-            if flag is True:
+            if self.key is not None:
                 return self.key, 200
             else:
                 return "Device exists", 403
@@ -210,9 +196,9 @@ class Device(Resource):
 
         if args["key"] is not None and args["key"] != "": 
             self.key = args["key"]
-            status = self.database.remove(self.key)
+            is_deleted = LIBDEVICE.delete_device(self.key)
 
-            if status is True:
+            if is_deleted is True:
                 return "Device is deleted", 200
             else:
                 return "Device not found", 404
@@ -248,17 +234,13 @@ class Device(Resource):
             args = PARASER.parse_args(strict=True)
             if args["who"] is not None and args["who"] != "": 
                 self.key = args["who"]
-                where = {
-                    "name": "key",
-                    "value": self.key
-                }
                 set = {
                     "name": "pulse",
                     "value": int(time.time() * 1000)
                 }
-                status = self.database.update(where=where, set=set)
+                is_updated = LIBDEVICE.update_device(self.key, set)
 
-                if status is True:
+                if is_updated is True:
                     return "Pulsed", 200
                 else:
                     return "Device not found", 404
@@ -271,12 +253,8 @@ class Device(Resource):
             args = PARASER.parse_args(strict=True)
             if args["key"] is not None and args["key"] != "": 
                 self.key = args["key"]
-                status = LibDevice().is_exists(self.key)
-                if status is True:
-                    where = {
-                        "name": "key",
-                        "value": self.key
-                    }
+                is_exists = LIBDEVICE.is_exists(self.key)
+                if is_exists is True:
                     if args["fields"] is not None and args["fields"] != "":
                         fields = json.loads(args["fields"])
                         if "ip" in fields:
@@ -285,7 +263,7 @@ class Device(Resource):
                                 "name": "ip",
                                 "value": self.ip
                             }
-                            self.database.update(where=where, set=set)
+                            LIBDEVICE.update_device(self.key, set)
 
                         if "port" in fields:
                             self.port = fields["port"]
@@ -293,30 +271,34 @@ class Device(Resource):
                                 "name": "port",
                                 "value": self.port
                             }
-                            self.database.update(where=where, set=set)
+                            LIBDEVICE.update_device(self.key, set)
+                
                         if "zone" in fields:
                             self.zone = fields["zone"]
                             set = {
                                 "name": "zone",
                                 "value": self.zone
                             }
-                            self.database.update(where=where, set=set)
+                            LIBDEVICE.update_device(self.key, set)
+
                         if "type" in fields:
                             self.type = fields["type"]
                             set = {
                                 "name": "type",
                                 "value": self.type
                             }
-                            self.database.update(where=where, set=set)
+                            LIBDEVICE.update_device(self.key, set)
+
                         if "name" in fields:
                             self.name = fields["name"]
                             set = {
                                 "name": "name",
                                 "value": self.name
                             }
-                            self.database.update(where=where, set=set)
+                            LIBDEVICE.update_device(self.key, set)
+
                         # update device uuid
-                        details = LibDevice().details(self.key)
+                        details = LIBDEVICE.details(self.key)
                         device = {
                             "ip": details["ip"],
                             "port": details["port"],
@@ -325,12 +307,12 @@ class Device(Resource):
                             "name": details["name"]
                         }
 
-                        self.uuid = Key().uuid(device)
+                        self.uuid = LIBDEVICE.uuid(device)
                         set = {
                                 "name": "uuid",
                                 "value": self.uuid
                             }
-                        self.database.update(where=where, set=set)
+                        LIBDEVICE.update_device(self.key, set)
                     else:
                         return "Device is not updated", 400
                     
