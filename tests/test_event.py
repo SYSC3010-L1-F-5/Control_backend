@@ -14,7 +14,6 @@
 """
 
 import json
-from shutil import which
 import uuid
 import hashlib
 

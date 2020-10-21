@@ -101,17 +101,12 @@ class LibUser:
                 data_struct["otp_time"] = -1
 
             # insert into database
-            where = {
-                "name": "uuid",
-                "value": uuid
-            }
-
             for key, value in data_struct.items():
                 set = {
                     "name": key,
                     "value": value
                 }
-                self.database.update(where=where, set=set)
+                self.update_user(uuid=uuid, set=set)
         
             return data_struct["otp"]
         
@@ -146,6 +141,31 @@ class LibUser:
                 else:
                     is_expired = True
         
+        return is_expired
+
+    def otp_to_expire(self, uuid):
+        """
+
+            Make an OTP expire when a user logout
+
+        """
+        is_expired = False
+        
+        user_details = self.details(uuid)
+
+        if user_details is not None:
+            set = {
+                "name": "otp",
+                "value": None
+            }
+            self.update_user(uuid=uuid, set=set)
+            set = {
+                "name": "otp_time",
+                "value": 0
+            }
+            self.update_user(uuid=uuid, set=set)
+            is_expired = True
+
         return is_expired
 
     def details(self, uuid):

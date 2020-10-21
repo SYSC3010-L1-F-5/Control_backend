@@ -4,13 +4,11 @@
     Author: Haoyu Xu
 
     For every api access that needs user authentication, add this line
+    UUID SPEC: "username:<username>;password:<password md5>"
     PARASER.add_argument('X-UUID', type=str, location='headers', help='User UUID')
     PARASER.add_argument('X-OTP', type=str, location='headers', help='User OTP')
 
     OTP should expire in 30 mins
-
-    TODO:
-        - PUT /set/: user setting related
 
 """
 import json
@@ -40,7 +38,7 @@ class User(Resource):
                 self: access global variables
 
             Returns:
-                json: device list/device details
+                json: user details
                 int: status code
 
         """
@@ -75,6 +73,47 @@ class User(Resource):
             return "", 404
 
     @response
+    def delete(self):
+        """
+
+            This method provides user logout
+
+            Args:
+                self: access global variables
+
+            Returns:
+                string: logout status
+                int: status code
+
+        """
+        # check url
+        urls = [
+            "/user/logout"
+        ]
+        path = request.path
+        if path not in urls:
+            return "Incorrect HTTP Method", 400
+        
+        if path.split("/")[2] == "logout":
+            PARASER.add_argument('X-UUID', type=str, location='headers', help='User UUID')
+            PARASER.add_argument('X-OTP', type=str, location='headers', help='User OTP')
+            args = PARASER.parse_args(strict=True)
+            self.uuid = args["X-UUID"]
+            self.otp = args["X-OTP"]
+
+            if self.__is_empty_or_none(self.uuid, self.otp) is False:
+                if LIBUSER.check_otp(uuid=self.uuid, otp=self.otp) is False:
+                    is_logged_out = LIBUSER.otp_to_expire(self.uuid)
+                    if is_logged_out is True:
+                        return "You are logged out", 200
+                    else:
+                        return "Unexpected behaviour", 500 # should never reach this line
+                else:
+                    return "You are unauthorized", 401
+        else:
+            return "", 404
+
+    @response
     def post(self):
         """
 
@@ -84,7 +123,7 @@ class User(Resource):
                 self: access global variables
 
             Returns:
-                json: device list/device details
+                string: user otp
                 int: status code
 
         """
@@ -123,7 +162,7 @@ class User(Resource):
                 self: access global variables
 
             Returns:
-                json: device list/device details
+                string: update status
                 int: status code
 
         """
