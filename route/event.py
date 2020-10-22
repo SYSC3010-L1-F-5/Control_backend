@@ -153,7 +153,7 @@ class Event(Resource):
         # python issue
         if self.__is_empty_or_none(self.who, self.what, self.when) is False:
 
-            self.what = json.loads(self.what)
+            self.what = json.loads(self.what.replace("'", '"'))
             self.when = int(args["when"])
 
             if self.what["type"] == ("temperature" or "humidity" or "pressure"):
@@ -276,7 +276,7 @@ class Event(Resource):
                         "value": self.uuid
                 }
                 if args["fields"] is not None and args["fields"] != "":
-                    fields = json.loads(args["fields"])
+                    fields = json.loads(args["fields"].replace("'", '"'))
                     if "hidden" in fields:
                         self.hidden = fields["hidden"]
                         set = {

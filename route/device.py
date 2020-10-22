@@ -256,7 +256,7 @@ class Device(Resource):
                 is_exists = LIBDEVICE.is_exists(self.key)
                 if is_exists is True:
                     if args["fields"] is not None and args["fields"] != "":
-                        fields = json.loads(args["fields"])
+                        fields = json.loads(args["fields"].replace("'", '"'))
                         if "ip" in fields:
                             self.ip = fields["ip"]
                             set = {

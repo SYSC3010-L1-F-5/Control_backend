@@ -3,10 +3,16 @@
     All user related methods will be here
     Author: Haoyu Xu
 
-    For every api access that needs user authentication, add this line
+    For every api access that needs user authentication, add fllowing
+
     UUID SPEC: "username:<username>;password:<password md5>"
+
     PARASER.add_argument('X-UUID', type=str, location='headers', help='User UUID')
     PARASER.add_argument('X-OTP', type=str, location='headers', help='User OTP')
+
+    LIBUSER.check_otp(uuid, otp): check if a user logged in
+
+    LIBUSER.is_admin(uuid): check if a user has admin permission
 
     OTP should expire in 30 mins
 
@@ -57,7 +63,7 @@ class User(Resource):
         if path.split("/")[1] == "user" and uuid is None:
             PARASER.add_argument('X-UUID', type=str, location='headers', help='User UUID')
             PARASER.add_argument('X-OTP', type=str, location='headers', help='User OTP')
-            args = PARASER.parse_args(strict=True)
+            args = PARASER.parse_args()
             self.uuid = args["X-UUID"]
             self.otp = args["X-OTP"]
 
@@ -70,10 +76,12 @@ class User(Resource):
                     return user_details, 200
                 else:
                     return "You are unauthorized", 401
+            else:
+                return "The request has unfulfilled fields", 400
         elif path.split("/")[1] == "users":
             PARASER.add_argument('X-UUID', type=str, location='headers', help='User UUID')
             PARASER.add_argument('X-OTP', type=str, location='headers', help='User OTP')
-            args = PARASER.parse_args(strict=True)
+            args = PARASER.parse_args()
             self.uuid = args["X-UUID"]
             self.otp = args["X-OTP"]
             if self.__is_empty_or_none(self.uuid, self.otp) is False:
@@ -95,17 +103,20 @@ class User(Resource):
         elif path.split("/")[2] == uuid:
             PARASER.add_argument('X-UUID', type=str, location='headers', help='User UUID')
             PARASER.add_argument('X-OTP', type=str, location='headers', help='User OTP')
-            args = PARASER.parse_args(strict=True)
+            args = PARASER.parse_args()
             self.uuid = args["X-UUID"]
             self.otp = args["X-OTP"]
             if self.__is_empty_or_none(self.uuid, self.otp) is False:
                 if LIBUSER.check_otp(uuid=self.uuid, otp=self.otp) is False:
-                    if LIBUSER.is_admin(self.uuid):
+                    if LIBUSER.is_admin(self.uuid) is True:
                         user_details = LIBUSER.details(uuid)
-                        user_details["password"] = ""
-                        user_details["otp"] = ""
-                        user_details["otp_time"] = ""
-                        return user_details, 200
+                        if user_details is not None:
+                            user_details["password"] = ""
+                            user_details["otp"] = ""
+                            user_details["otp_time"] = ""
+                            return user_details, 200
+                        else:
+                            return "User not found", 404
                     else:
                         return "You don't have this permission", 403
                 else:
@@ -141,7 +152,7 @@ class User(Resource):
         if path.split("/")[2] == "logout":
             PARASER.add_argument('X-UUID', type=str, location='headers', help='User UUID')
             PARASER.add_argument('X-OTP', type=str, location='headers', help='User OTP')
-            args = PARASER.parse_args(strict=True)
+            args = PARASER.parse_args()
             self.uuid = args["X-UUID"]
             self.otp = args["X-OTP"]
 
@@ -159,17 +170,16 @@ class User(Resource):
         elif path.split("/")[2] == "delete":
             PARASER.add_argument('X-UUID', type=str, location='headers', help='User UUID')
             PARASER.add_argument('X-OTP', type=str, location='headers', help='User OTP')
-            args = PARASER.parse_args(strict=True)
+            PARASER.add_argument('uuid', type=str, help='User UUID')
+            args = PARASER.parse_args()
             self.uuid = args["X-UUID"]
             self.otp = args["X-OTP"]
 
             if self.__is_empty_or_none(self.uuid, self.otp) is False:
                 if LIBUSER.check_otp(uuid=self.uuid, otp=self.otp) is False:
-                    fields = json.loads(args["fields"])
-
                     if LIBUSER.is_admin(self.uuid):
-                        if self.__is_empty_or_none(fields["uuid"]) is False:
-                            self.uuid = fields["uuid"]
+                        if self.__is_empty_or_none(args["uuid"]) is False:
+                            self.uuid = args["uuid"]
 
                     is_deleted = LIBUSER.delete_user(self.uuid)
                     if is_deleted is True:
@@ -208,9 +218,10 @@ class User(Resource):
             return "Incorrect HTTP Method", 400
 
         if path.split("/")[2] == "login":
-            PARASER.add_argument('X-UUID', type=str, location='headers', help='User UUID')
-            PARASER.add_argument('X-PERM', type=bool, location='headers', help='Remember Me')
-            args = PARASER.parse_args(strict=True)
+            paraser = reqparse.RequestParser()
+            paraser.add_argument('X-UUID', type=str, location='headers', help='User UUID')
+            paraser.add_argument('X-PERM', type=bool, location='headers', help='Remember Me', default=False)
+            args = paraser.parse_args()
             self.uuid = args["X-UUID"]
             self.perm = args["X-PERM"]
 
@@ -226,26 +237,35 @@ class User(Resource):
             PARASER.add_argument('X-UUID', type=str, location='headers', help='User UUID')
             PARASER.add_argument('X-OTP', type=str, location='headers', help='User OTP')
             PARASER.add_argument('fields', type=str, help='Fields to be updated')
-            args = PARASER.parse_args(strict=True)
+            args = PARASER.parse_args()
             self.uuid = args["X-UUID"]
             self.otp = args["X-OTP"]
             fields = args["fields"]
-
             if self.__is_empty_or_none(self.uuid, self.otp, fields) is False:
                 if LIBUSER.check_otp(uuid=self.uuid, otp=self.otp) is False:
                     if LIBUSER.is_admin(self.uuid):
-                        fields = json.loads(args["fields"])
+                        fields = json.loads(args["fields"].replace("'", '"'))
                         # "username:<username>;password:<password md5>;type:<type>"
-                        if self.__is_empty_or_none(fields["username"], fields["password"], fields["type"]) is False:
-                            user = {
-                                "username": fields["username"],
-                                "password": fields["password"]
-                            }
-                            is_added = LIBUSER.add_user(user, fields["type"])
-                            if is_added is True:
-                                return "User is added", 200
-                            else:
-                                return "Unexpected behaviour", 500
+                        required_fields = [
+                            "username",
+                            "password",
+                            "type"
+                        ]
+                        if self.__verify_fields(expected=required_fields, actual=fields) is True:
+                            
+                            if self.__is_empty_or_none(fields["username"], fields["password"], fields["type"]) is False:
+                                
+                                user = {
+                                    "username": fields["username"],
+                                    "password": fields["password"]
+                                }
+                                is_added = LIBUSER.add_user(user, fields["type"])
+                                if is_added is True:
+                                    return "User is added", 200
+                                else:
+                                    return "User either exists or unexpected error happened", 403
+
+                        return "The request has unfulfilled fields", 400
                     else:
                         return "You don't have this permission", 403
                 else:
@@ -282,14 +302,14 @@ class User(Resource):
             PARASER.add_argument('X-UUID', type=str, location='headers', help='User UUID')
             PARASER.add_argument('X-OTP', type=str, location='headers', help='User OTP')
             PARASER.add_argument('fields', type=str, help='Fields to be updated')
-            args = PARASER.parse_args(strict=True)
+            args = PARASER.parse_args()
             self.uuid = args["X-UUID"]
             self.otp = args["X-OTP"]
             fields = args["fields"]
 
             if self.__is_empty_or_none(self.uuid, self.otp, fields) is False:
                 if LIBUSER.check_otp(uuid=self.uuid, otp=self.otp) is False:
-                    fields = json.loads(args["fields"])
+                    fields = json.loads(args["fields"].replace("'", '"'))
 
                     if LIBUSER.is_admin(self.uuid):
                         if "uuid" in fields:
@@ -370,3 +390,31 @@ class User(Resource):
                 is_exists = False
         
         return is_exists
+
+    def __verify_fields(self, expected, actual):
+        """
+
+            This method verify if input dict has required fields
+            
+            Args:
+                self: accessing global parameters
+                expected: expected fields
+                actual: actual fields
+            
+            Returns:
+                bool: same => True
+                      not the same => False
+
+        """
+        flags = []
+        flag = False
+        for key, value in actual.items():
+            if key in expected:
+                flags.append(True)
+            else:
+                flags.append(False)
+
+        if all(flags) and len(flags) == len(expected):
+            flag = True
+
+        return flag
