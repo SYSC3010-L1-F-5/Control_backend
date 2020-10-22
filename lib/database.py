@@ -162,14 +162,14 @@ class Database:
         self.connection.close()
         return status
 
-    def remove(self, data):
+    def remove(self, where):
         """
 
             This method deletes data in databse table
 
             Args:
                 self: accessing global parameters
-                data: the data
+                where: where to locate item
 
             Returns:
                 bool: True if successful, False otherwise
@@ -178,19 +178,6 @@ class Database:
         status = False
         
         self.__connect_db()
-
-        where=None
-
-        if self.table == "devices":
-            where = {
-                "name": "key",
-                "value": data
-            }
-        elif self.table == "events":
-            where = {
-                "name": "uuid",
-                "value": data
-            }
 
         status = self.__delete_row(where=where)
 

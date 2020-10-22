@@ -142,7 +142,11 @@ class LibDevice:
         is_exists = self.is_exists(key)
         is_deleted = False
         if is_exists is True:
-            is_deleted = self.database.remove(key)
+            where = {
+                "name": "key",
+                "value": key
+            }
+            is_deleted = self.database.remove(where)
 
         return is_deleted
 

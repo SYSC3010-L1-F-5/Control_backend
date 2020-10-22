@@ -100,7 +100,11 @@ class LibUser:
         is_exists = self.is_exists(uuid)
         is_deleted = False
         if is_exists is True:
-            is_deleted = self.database.remove(uuid)
+            where = {
+                "name": "uuid",
+                "value": uuid
+            }
+            is_deleted = self.database.remove(where)
 
         return is_deleted
         
