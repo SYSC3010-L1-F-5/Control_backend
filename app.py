@@ -6,11 +6,11 @@ from route.device import Device
 from route.event import Event
 from route.index import Index
 from route.user import User
+from route.system import System
 from lib.message import errorhandler
 from lib.database import Database
 from lib.libuser import LibUser
 
-# it seems that this line of code is called twice
 Database().create()
 LibUser().initialize()
 
@@ -40,14 +40,14 @@ API.add_resource(Device,
     "/pulse"
 )
 API.add_resource(User, 
-    '/user',
-    '/users',
     '/user/login',
     '/user/add',
-    '/user/delete'
+    '/user/delete',
     '/user/update',
     '/user/logout',
-    '/user/<uuid>'
+    '/user/<uuid>',
+    '/user',
+    '/users'
 )
 API.add_resource(Event, 
     "/events",

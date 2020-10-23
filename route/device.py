@@ -258,44 +258,60 @@ class Device(Resource):
                     if args["fields"] is not None and args["fields"] != "":
                         fields = json.loads(args["fields"].replace("'", '"'))
                         if "ip" in fields:
-                            self.ip = fields["ip"]
-                            set = {
-                                "name": "ip",
-                                "value": self.ip
-                            }
-                            LIBDEVICE.update_device(self.key, set)
+                            if self.__is_empty_or_none(fields["ip"]) is False:
+                                self.ip = fields["ip"]
+                                set = {
+                                    "name": "ip",
+                                    "value": self.ip
+                                }
+                                LIBDEVICE.update_device(self.key, set)
+                            else:
+                                return "The request has unfulfilled fields", 401
 
                         if "port" in fields:
-                            self.port = fields["port"]
-                            set = {
-                                "name": "port",
-                                "value": self.port
-                            }
-                            LIBDEVICE.update_device(self.key, set)
+                            if self.__is_empty_or_none(fields["port"]) is False:
+                                
+                                self.port = fields["port"]
+                                set = {
+                                    "name": "port",
+                                    "value": self.port
+                                }
+                                LIBDEVICE.update_device(self.key, set)
+                            else:
+                                return "The request has unfulfilled fields", 401
                 
                         if "zone" in fields:
-                            self.zone = fields["zone"]
-                            set = {
-                                "name": "zone",
-                                "value": self.zone
-                            }
-                            LIBDEVICE.update_device(self.key, set)
+                            if self.__is_empty_or_none(fields["zone"]) is False:
+                                self.zone = fields["zone"]
+                                set = {
+                                    "name": "zone",
+                                    "value": self.zone
+                                }
+                                LIBDEVICE.update_device(self.key, set)
+                            else:
+                                return "The request has unfulfilled fields", 401
 
                         if "type" in fields:
-                            self.type = fields["type"]
-                            set = {
-                                "name": "type",
-                                "value": self.type
-                            }
-                            LIBDEVICE.update_device(self.key, set)
+                            if self.__is_empty_or_none(fields["type"]) is False:
+                                self.type = fields["type"]
+                                set = {
+                                    "name": "type",
+                                    "value": self.type
+                                }
+                                LIBDEVICE.update_device(self.key, set)
+                            else:
+                                return "The request has unfulfilled fields", 401
 
                         if "name" in fields:
-                            self.name = fields["name"]
-                            set = {
-                                "name": "name",
-                                "value": self.name
-                            }
-                            LIBDEVICE.update_device(self.key, set)
+                            if self.__is_empty_or_none(fields["name"]) is False:
+                                self.name = fields["name"]
+                                set = {
+                                    "name": "name",
+                                    "value": self.name
+                                }
+                                LIBDEVICE.update_device(self.key, set)
+                            else:
+                                return "The request has unfulfilled fields", 401
 
                         # update device uuid
                         details = LIBDEVICE.details(self.key)

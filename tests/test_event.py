@@ -667,6 +667,19 @@ def test_event_update(app, client):
     actual = json.loads(res.get_data(as_text=True))
     assert event == actual["message"]
 
+    fields = dict(
+        what="         "
+    )
+    res = client.put('/event/update', data=dict(
+        which=uuids["what.data"],
+        fields=str(json.dumps(fields))
+    ))
+    assert res.status_code == 401
+    # test message
+    expected = "The request has unfulfilled fields"
+    actual = json.loads(res.get_data(as_text=True))
+    assert expected == actual["message"]
+
 # should be the last test
 def test_delete(app, client):
     res = client.delete('/event/delete', data=dict(

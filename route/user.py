@@ -313,34 +313,50 @@ class User(Resource):
 
                     if LIBUSER.is_admin(self.uuid):
                         if "uuid" in fields:
-                            self.uuid = fields["uuid"]
-                            if "type" in fields:
+                            if self.__is_empty_or_none(fields["uuid"]) is False and LIBUSER.is_exists(fields["uuid"]) is True:
+                                self.uuid = fields["uuid"]
+                            else:
+                                return "Invalid UUID", 400
+                        
+                        if "type" in fields:
+                            if self.__is_empty_or_none(fields["type"]) is False:
                                 set = {
                                     "name": "type",
                                     "value": fields["type"]
                                 }
                                 LIBUSER.update_user(self.uuid, set)
+                            else:
+                                return "The request has unfulfilled fields", 400
 
                     if "username" in fields:
-                        set = {
-                            "name": "username",
-                            "value": fields["username"]
-                        }
-                        LIBUSER.update_user(self.uuid, set)
+                        if self.__is_empty_or_none(fields["username"]) is False:
+                            set = {
+                                "name": "username",
+                                "value": fields["username"]
+                            }
+                            LIBUSER.update_user(self.uuid, set)
+                        else:
+                            return "The request has unfulfilled fields", 400
 
                     if "password" in fields:
-                        set = {
-                            "name": "password",
-                            "value": fields["password"]
-                        }
-                        LIBUSER.update_user(self.uuid, set)
+                        if self.__is_empty_or_none(fields["password"]) is False:
+                            set = {
+                                "name": "password",
+                                "value": fields["password"]
+                            }
+                            LIBUSER.update_user(self.uuid, set)
+                        else:
+                            return "The request has unfulfilled fields", 400
                     
                     if "email" in fields:
-                        set = {
-                            "name": "email",
-                            "value": fields["email"]
-                        }
-                        LIBUSER.update_user(self.uuid, set)
+                        if self.__is_empty_or_none(fields["email"]) is False:
+                            set = {
+                                "name": "email",
+                                "value": fields["email"]
+                            }
+                            LIBUSER.update_user(self.uuid, set)
+                        else:
+                            return "The request has unfulfilled fields", 400
 
                     # update user uuid
                     user_details = LIBUSER.details(self.uuid)
@@ -348,8 +364,9 @@ class User(Resource):
                         "username": user_details["username"],
                         "password": user_details["password"]
                     }
+                    uuid_template = "username:{username};password:{password}".format(username=user["username"], password=user["password"])
                     old_uuid = self.uuid
-                    self.uuid = LIBUSER.uuid(user)
+                    self.uuid = LIBUSER.uuid(uuid_template)
                     set = {
                         "name": "uuid",
                         "value": self.uuid

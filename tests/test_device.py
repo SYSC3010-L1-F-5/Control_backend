@@ -618,6 +618,71 @@ def test_device_update(app, client):
     actual = json.loads(res.get_data(as_text=True))
     assert device == actual["message"]["device"]
 
+    fields = dict(
+        ip="                 "
+    )
+    res = client.put('/device/update', data=dict(
+        key=keys["test"],
+        fields=str(json.dumps(fields))
+    ))
+    assert res.status_code == 401
+    # test message
+    expected = "The request has unfulfilled fields"
+    actual = json.loads(res.get_data(as_text=True))
+    assert expected == actual["message"]
+
+    fields = dict(
+        port="                 "
+    )
+    res = client.put('/device/update', data=dict(
+        key=keys["test"],
+        fields=str(json.dumps(fields))
+    ))
+    assert res.status_code == 401
+    # test message
+    expected = "The request has unfulfilled fields"
+    actual = json.loads(res.get_data(as_text=True))
+    assert expected == actual["message"]
+
+    fields = dict(
+        type="                 "
+    )
+    res = client.put('/device/update', data=dict(
+        key=keys["test"],
+        fields=str(json.dumps(fields))
+    ))
+    assert res.status_code == 401
+    # test message
+    expected = "The request has unfulfilled fields"
+    actual = json.loads(res.get_data(as_text=True))
+    assert expected == actual["message"]
+
+    fields = dict(
+        zone="                 "
+    )
+    res = client.put('/device/update', data=dict(
+        key=keys["test"],
+        fields=str(json.dumps(fields))
+    ))
+    assert res.status_code == 401
+    # test message
+    expected = "The request has unfulfilled fields"
+    actual = json.loads(res.get_data(as_text=True))
+    assert expected == actual["message"]
+
+    fields = dict(
+        name="                 "
+    )
+    res = client.put('/device/update', data=dict(
+        key=keys["test"],
+        fields=str(json.dumps(fields))
+    ))
+    assert res.status_code == 401
+    # test message
+    expected = "The request has unfulfilled fields"
+    actual = json.loads(res.get_data(as_text=True))
+    assert expected == actual["message"]
+
 def test_pulse(app, client):
     # sufficient case
     res = client.put('/pulse', data=dict(

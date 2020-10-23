@@ -271,10 +271,6 @@ class Event(Resource):
             status = LIBEVENT.is_exists(self.uuid)
 
             if status is True:
-                where = {
-                        "name": "uuid",
-                        "value": self.uuid
-                }
                 if args["fields"] is not None and args["fields"] != "":
                     fields = json.loads(args["fields"].replace("'", '"'))
                     if "hidden" in fields:
@@ -286,12 +282,15 @@ class Event(Resource):
                         LIBEVENT.update_event(self.uuid, set)
 
                     if "what" in fields:
-                        self.what = fields["what"]
-                        set = {
-                            "name": "details",
-                            "value": self.what
-                        }
-                        LIBEVENT.update_event(self.uuid, set)
+                        if self.__is_empty_or_none(fields["what"]) is False:
+                            self.what = fields["what"]
+                            set = {
+                                "name": "details",
+                                "value": self.what
+                            }
+                            LIBEVENT.update_event(self.uuid, set)
+                        else:
+                            return "The request has unfulfilled fields", 401
 
                     # update event uuid
                     details = LIBEVENT.details(self.uuid)
