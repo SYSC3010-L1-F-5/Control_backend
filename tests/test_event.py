@@ -16,6 +16,41 @@
 import json
 import uuid
 import hashlib
+from lib.libconfig import LibConfig
+CONFIG = LibConfig(config="test.yml").fetch()
+USERS = CONFIG["users"]
+admins = {
+    "admin": {
+        "uuid": "dummy",
+        "otp": "dummy"
+    },
+    "root": {
+        "uuid": "dummy",
+        "otp": "dummy"
+    },
+    "dummy": {
+        "uuid": "f9a5fdd11746e324bb664d6e80025b7d97959aa4f8052f5327127de1094954d2",
+        "otp": "dummy"
+    }
+}
+
+users = {
+    "jack": {
+        "password": "imjack",
+        "uuid": "dummy",
+        "otp": "dummy"
+    },
+    "lisa": {
+        "password": "imlisa",
+        "uuid": "dummy",
+        "otp": "dummy"
+    },
+    "dummy": {
+        "password": "dummy",
+        "uuid": "dummy",
+        "otp": "dummy"
+    }
+}
 
 uuids = {
     "who1": "",
@@ -56,6 +91,82 @@ DEVICES_UUIDS = [
 
 PRE_EVENTS = []
 
+def test_setup(app, client):
+
+    for key, value in USERS.items():
+        user = {
+            "username": key,
+            "password": str(hashlib.md5(str(value).encode('utf-8')).hexdigest())
+        }
+        admins[key]["uuid"] = str(hashlib.sha256(str(";".join("{field_key}:{field_value}".format(field_key=field_key, field_value=field_value) for field_key, field_value in user.items())).encode('utf-8')).hexdigest())
+
+    # login
+    res = client.post("/user/login", headers={
+        "X-UUID": admins["admin"]["uuid"]
+    })
+    assert res.status_code == 200
+    expected = 200
+    actual = json.loads(res.get_data(as_text=True))
+    assert expected == actual["status_code"]
+    admins["admin"]["otp"] = actual["message"]
+
+    # add normal user
+    res = client.post("/user/add", headers={
+        "X-UUID": admins["admin"]["uuid"],
+        "X-OTP": admins["admin"]["otp"]
+    }, data=dict(
+        fields=str(dict(
+            username="jack",
+            password=str(hashlib.md5(str(users["jack"]["password"]).encode('utf-8')).hexdigest()),
+            type="normal"
+        ))
+    ))
+    assert res.status_code == 200
+    expected = "User is added"
+    actual = json.loads(res.get_data(as_text=True))
+    assert expected == actual["message"]
+
+    users["jack"]["uuid"] = str(hashlib.sha256("username:{username};password:{password}".format(username="jack", password=str(hashlib.md5(str(users["jack"]["password"]).encode('utf-8')).hexdigest())).encode('utf-8')).hexdigest())
+
+    # login
+    res = client.post("/user/login", headers={
+        "X-UUID": users["jack"]["uuid"],
+        "X-PERM": True
+    })
+    assert res.status_code == 200
+    expected = 200
+    actual = json.loads(res.get_data(as_text=True))
+    assert expected == actual["status_code"]
+    users["jack"]["otp"] = actual["message"]
+
+    res = client.post('/device/add', data=DEVICES[0], headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
+    assert res.status_code == 200
+    # test status_code
+    expected = 200
+    actual = json.loads(res.get_data(as_text=True))
+    assert expected == actual["status_code"]
+    keys["test"] = actual["message"]
+
+    res = client.post('/device/add', data=DEVICES[1], headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
+    assert res.status_code == 200
+    # test status_code
+    expected = 200
+    actual = json.loads(res.get_data(as_text=True))
+    assert expected == actual["status_code"]
+    keys["test1"] = actual["message"]
+
+    global PRE_EVENTS
+    res = client.get('/events')
+    assert res.status_code == 200
+    actual = json.loads(res.get_data(as_text=True))
+    PRE_EVENTS = actual["message"]
+
 # test routes
 def test_route(app, client):
     res = client.get('/events')
@@ -76,7 +187,10 @@ def test_route(app, client):
     res = client.delete('/event/{}'.format(uuids["dummy"]))
     assert res.status_code == 500
 
-    res = client.delete('/event/delete')
+    res = client.delete('/event/delete', headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 400
 
     res = client.put('/event/{}'.format(uuids["dummy"]))
@@ -85,7 +199,10 @@ def test_route(app, client):
     res = client.put('/event/clear')
     assert res.status_code == 200
 
-    res = client.put('/event/update')
+    res = client.put('/event/update', headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 400
 
     # test mismatched method and url
@@ -142,29 +259,6 @@ def test_route(app, client):
 
     res = client.put('/event/delete')
     assert res.status_code == 400
-
-def test_setup(app, client):
-    res = client.post('/device/add', data=DEVICES[0])
-    assert res.status_code == 200
-    # test status_code
-    expected = 200
-    actual = json.loads(res.get_data(as_text=True))
-    assert expected == actual["status_code"]
-    keys["test"] = actual["message"]
-
-    res = client.post('/device/add', data=DEVICES[1])
-    assert res.status_code == 200
-    # test status_code
-    expected = 200
-    actual = json.loads(res.get_data(as_text=True))
-    assert expected == actual["status_code"]
-    keys["test1"] = actual["message"]
-
-    global PRE_EVENTS
-    res = client.get('/events')
-    assert res.status_code == 200
-    actual = json.loads(res.get_data(as_text=True))
-    PRE_EVENTS = actual["message"]
 
 # test add events
 def test_add(app, client):
@@ -485,7 +579,10 @@ def test_event_update(app, client):
     res = client.put('/event/update', data=dict(
         which=uuids["who1"],
         fields=""
-    ))
+    ), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 400
     # test message
     expected = "Event is not updated"
@@ -495,7 +592,10 @@ def test_event_update(app, client):
     # non-exist field
     res = client.put('/event/update', data=dict(
         which=uuids["who1"]
-    ))
+    ), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 400
     # test message
     expected = "Event is not updated"
@@ -505,7 +605,10 @@ def test_event_update(app, client):
     # non-exist event
     res = client.put('/event/update', data=dict(
         which=uuids["dummy"]
-    ))
+    ), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 404
     # test message
     expected = "Event not found"
@@ -520,7 +623,10 @@ def test_event_update(app, client):
     res = client.put('/event/update', data=dict(
         which=uuids["who1"],
         fields=str(json.dumps(fields))
-    ))
+    ), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 200
     # test message
     event = {
@@ -558,7 +664,10 @@ def test_event_update(app, client):
     res = client.put('/event/update', data=dict(
         which=uuids["who2"],
         fields=str(json.dumps(fields))
-    ))
+    ), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 200
     # test message
     event = {
@@ -597,7 +706,10 @@ def test_event_update(app, client):
     res = client.put('/event/update', data=dict(
         which=uuids["what.type"],
         fields=str(json.dumps(fields))
-    ))
+    ), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 200
     # test message
     event = {
@@ -636,7 +748,10 @@ def test_event_update(app, client):
     res = client.put('/event/update', data=dict(
         which=uuids["what.data"],
         fields=str(json.dumps(fields))
-    ))
+    ), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 200
     # test message
     event = {
@@ -673,10 +788,49 @@ def test_event_update(app, client):
     res = client.put('/event/update', data=dict(
         which=uuids["what.data"],
         fields=str(json.dumps(fields))
-    ))
+    ), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 401
     # test message
     expected = "The request has unfulfilled fields"
+    actual = json.loads(res.get_data(as_text=True))
+    assert expected == actual["message"]
+
+    # normal user access
+    fields = dict(
+        what="https://example.com/1",
+        hidden=1
+    )
+    res = client.put('/event/update', data=dict(
+        which=uuids["who1"],
+        fields=str(json.dumps(fields))
+    ), headers={
+        "X-OTP": users["jack"]["otp"],
+        "X-UUID": users["jack"]["uuid"]
+    })
+    assert res.status_code == 403
+    # test message
+    expected = "You don't have this permission"
+    actual = json.loads(res.get_data(as_text=True))
+    assert expected == actual["message"]
+
+    # invalid user access
+    fields = dict(
+        what="https://example.com/1",
+        hidden=1
+    )
+    res = client.put('/event/update', data=dict(
+        which=uuids["who1"],
+        fields=str(json.dumps(fields))
+    ), headers={
+        "X-OTP": admins["dummy"]["otp"],
+        "X-UUID": admins["dummy"]["uuid"]
+    })
+    assert res.status_code == 401
+    # test message
+    expected = "You are unauthorized"
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
 
@@ -684,7 +838,10 @@ def test_event_update(app, client):
 def test_delete(app, client):
     res = client.delete('/event/delete', data=dict(
         which=uuids["who1"]
-    ))
+    ), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 200
     # test status_code
     expected = "Event is deleted"
@@ -693,7 +850,10 @@ def test_delete(app, client):
 
     res = client.delete('/event/delete', data=dict(
         which=uuids["who2"]
-    ))
+    ), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 200
     # test status_code
     expected = "Event is deleted"
@@ -702,7 +862,10 @@ def test_delete(app, client):
 
     res = client.delete('/event/delete', data=dict(
         which=uuids["what.type"]
-    ))
+    ), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 200
     # test status_code
     expected = "Event is deleted"
@@ -711,7 +874,10 @@ def test_delete(app, client):
 
     res = client.delete('/event/delete', data=dict(
         which=uuids["what.data"]
-    ))
+    ), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 200
     # test status_code
     expected = "Event is deleted"
@@ -720,7 +886,10 @@ def test_delete(app, client):
 
     res = client.delete('/event/delete', data=dict(
         which=uuids["when"]
-    ))
+    ), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 200
     # test status_code
     expected = "Event is deleted"
@@ -730,18 +899,50 @@ def test_delete(app, client):
     # delete non-exist case
     res = client.delete('/event/delete', data=dict(
         which=uuids["dummy"]
-    ))
+    ), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 404
     # test status_code
     expected = "Event not found"
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
 
+    # normal user access
+    res = client.delete('/event/delete', data=dict(
+        which=uuids["who1"]
+    ), headers={
+        "X-OTP": users["jack"]["otp"],
+        "X-UUID": users["jack"]["uuid"]
+    })
+    assert res.status_code == 403
+    # test status_code
+    expected = "You don't have this permission"
+    actual = json.loads(res.get_data(as_text=True))
+    assert expected == actual["message"]
+
+    # invalid user access
+    res = client.delete('/event/delete', data=dict(
+        which=uuids["who1"]
+    ), headers={
+        "X-OTP": admins["dummy"]["otp"],
+        "X-UUID": admins["dummy"]["uuid"]
+    })
+    assert res.status_code == 401
+    # test status_code
+    expected = "You are unauthorized"
+    actual = json.loads(res.get_data(as_text=True))
+    assert expected == actual["message"]
+
 def test_teardown(app, client):
     res = client.delete('/device/delete', data=dict(
         key=keys["test"]
-    ))
-    assert res.status_code == 200
+    ), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
+    # assert res.status_code == 200
     # test status_code
     expected = "Device is deleted"
     actual = json.loads(res.get_data(as_text=True))
@@ -749,12 +950,36 @@ def test_teardown(app, client):
 
     res = client.delete('/device/delete', data=dict(
         key=keys["test1"]
-    ))
+    ), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 200
     # test status_code
     expected = "Device is deleted"
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
+
+    # sufficient case
+    res = client.delete("/user/delete", headers={
+        "X-UUID": admins["admin"]["uuid"],
+        "X-OTP": admins["admin"]["otp"]
+    }, data={
+        "uuid": users["jack"]["uuid"]
+    })
+    assert res.status_code == 200
+    expected = "User is deleted"
+    actual = json.loads(res.get_data(as_text=True))
+    assert expected == actual["message"]
+
+    res = client.post("/user/login", headers={
+        "X-UUID": admins["admin"]["uuid"]
+    })
+    assert res.status_code == 200
+    expected = 200
+    actual = json.loads(res.get_data(as_text=True))
+    assert expected == actual["status_code"]
+    admins["admin"]["otp"] = actual["message"]
 
 # test empty events list
 def test_events_empty(app, client):

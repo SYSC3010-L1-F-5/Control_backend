@@ -42,6 +42,9 @@ LIBEVENT = LibEvent()
 from lib.plugin import Plugin
 PLUGIN = Plugin()
 
+from lib.libuser import LibUser
+LIBUSER = LibUser()
+
 PARASER = reqparse.RequestParser()
 
 class Event(Resource):
@@ -55,6 +58,8 @@ class Event(Resource):
             self.when: unix timestamp
             self.uuid: evnet uuid
             self.hidden: 0 for not hidden, 1 for hidden
+            self.auth_uuid: use for authentication
+            self.auth_otp: use for authentication
 
         """
         self.who = None
@@ -62,6 +67,8 @@ class Event(Resource):
         self.when = None
         self.uuid = None
         self.hidden = 0
+        self.auth_uuid = None
+        self.auth_otp = None
 
     @response
     def get(self, uuid=None):
@@ -211,18 +218,29 @@ class Event(Resource):
             return "", 404
 
         PARASER.add_argument('which', type=str, help='Event UUID')
+        PARASER.add_argument('X-UUID', type=str, location='headers', help='User UUID')
+        PARASER.add_argument('X-OTP', type=str, location='headers', help='User OTP')
         args = PARASER.parse_args(strict=True)
 
-        if args["which"] is not None and args["which"] != "": 
-            self.uuid = args["which"]
-            is_deleted = LIBEVENT.delete_event(self.uuid)
+        self.auth_uuid = args["X-UUID"]
+        self.auth_otp = args["X-OTP"]
 
-            if is_deleted is True:
-                return "Event is deleted", 200
+        if LIBUSER.check_otp(uuid=self.auth_uuid, otp=self.auth_otp) is False:
+            if LIBUSER.is_admin(self.auth_uuid):
+                if args["which"] is not None and args["which"] != "": 
+                    self.uuid = args["which"]
+                    is_deleted = LIBEVENT.delete_event(self.uuid)
+
+                    if is_deleted is True:
+                        return "Event is deleted", 200
+                    else:
+                        return "Event not found", 404
+                else:
+                    return "The request has unfulfilled fields", 400
             else:
-                return "Event not found", 404
+                return "You don't have this permission", 403
         else:
-            return "The request has unfulfilled fields", 400
+            return "You are unauthorized", 401
 
     @response
     def put(self):
@@ -257,6 +275,8 @@ class Event(Resource):
 
         PARASER.add_argument('which', type=str, help='Event UUID')
         PARASER.add_argument('fields', type=str, help='Fields to be updated')
+        PARASER.add_argument('X-UUID', type=str, location='headers', help='User UUID')
+        PARASER.add_argument('X-OTP', type=str, location='headers', help='User OTP')
         args = PARASER.parse_args(strict=True)
 
         # /event/clear
@@ -265,57 +285,66 @@ class Event(Resource):
             return "OK", 200
 
         # /event/update
-        if args["which"] is not None and args["which"] != "": 
-            self.uuid = args["which"]
+        self.auth_uuid = args["X-UUID"]
+        self.auth_otp = args["X-OTP"]
 
-            status = LIBEVENT.is_exists(self.uuid)
+        if LIBUSER.check_otp(uuid=self.auth_uuid, otp=self.auth_otp) is False:
+            if LIBUSER.is_admin(self.auth_uuid):
+                if args["which"] is not None and args["which"] != "": 
+                    self.uuid = args["which"]
 
-            if status is True:
-                if args["fields"] is not None and args["fields"] != "":
-                    fields = json.loads(args["fields"].replace("'", '"'))
-                    if "hidden" in fields:
-                        self.hidden = fields["hidden"]
-                        set = {
-                            "name": "hidden",
-                            "value": self.hidden
-                        }
-                        LIBEVENT.update_event(self.uuid, set)
+                    status = LIBEVENT.is_exists(self.uuid)
 
-                    if "what" in fields:
-                        if self.__is_empty_or_none(fields["what"]) is False:
-                            self.what = fields["what"]
-                            set = {
-                                "name": "details",
-                                "value": self.what
+                    if status is True:
+                        if args["fields"] is not None and args["fields"] != "":
+                            fields = json.loads(args["fields"].replace("'", '"'))
+                            if "hidden" in fields:
+                                self.hidden = fields["hidden"]
+                                set = {
+                                    "name": "hidden",
+                                    "value": self.hidden
+                                }
+                                LIBEVENT.update_event(self.uuid, set)
+
+                            if "what" in fields:
+                                if self.__is_empty_or_none(fields["what"]) is False:
+                                    self.what = fields["what"]
+                                    set = {
+                                        "name": "details",
+                                        "value": self.what
+                                    }
+                                    LIBEVENT.update_event(self.uuid, set)
+                                else:
+                                    return "The request has unfulfilled fields", 401
+
+                            # update event uuid
+                            details = LIBEVENT.details(self.uuid)
+                            event = {
+                                "device": details["device"],
+                                "type": details["type"],
+                                "details": details["details"],
+                                "time": details["time"]
                             }
-                            LIBEVENT.update_event(self.uuid, set)
+                            uuid_field = ";".join("{key}:{value}".format(key=key, value=value) for key, value in event.items())
+                            old_uuid = self.uuid
+                            self.uuid = LIBEVENT.uuid(uuid_field)
+                            set = {
+                                "name": "uuid",
+                                "value": self.uuid
+                            }
+                            LIBEVENT.update_event(old_uuid, set)
                         else:
-                            return "The request has unfulfilled fields", 401
+                            return "Event is not updated", 400
 
-                    # update event uuid
-                    details = LIBEVENT.details(self.uuid)
-                    event = {
-                        "device": details["device"],
-                        "type": details["type"],
-                        "details": details["details"],
-                        "time": details["time"]
-                    }
-                    uuid_field = ";".join("{key}:{value}".format(key=key, value=value) for key, value in event.items())
-                    old_uuid = self.uuid
-                    self.uuid = LIBEVENT.uuid(uuid_field)
-                    set = {
-                        "name": "uuid",
-                        "value": self.uuid
-                    }
-                    LIBEVENT.update_event(old_uuid, set)
+                        return self.uuid, 200
+                    else:
+                        return "Event not found", 404
                 else:
-                    return "Event is not updated", 400
-
-                return self.uuid, 200
+                    return "The request has unfulfilled fields", 400
             else:
-                return "Event not found", 404
+                return "You don't have this permission", 403
         else:
-                return "The request has unfulfilled fields", 400
+            return "You are unauthorized", 401
     
     def __is_empty_or_none(self, *argv):
         """

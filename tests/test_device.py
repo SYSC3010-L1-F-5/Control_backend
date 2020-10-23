@@ -29,12 +29,95 @@ keys = {
 
 PRE_DEVICES = []
 
+import hashlib
+from lib.libconfig import LibConfig
+CONFIG = LibConfig(config="test.yml").fetch()
+USERS = CONFIG["users"]
+admins = {
+    "admin": {
+        "uuid": "dummy",
+        "otp": "dummy"
+    },
+    "root": {
+        "uuid": "dummy",
+        "otp": "dummy"
+    },
+    "dummy": {
+        "uuid": "f9a5fdd11746e324bb664d6e80025b7d97959aa4f8052f5327127de1094954d2",
+        "otp": "dummy"
+    }
+}
+
+users = {
+    "jack": {
+        "password": "imjack",
+        "uuid": "dummy",
+        "otp": "dummy"
+    },
+    "lisa": {
+        "password": "imlisa",
+        "uuid": "dummy",
+        "otp": "dummy"
+    },
+    "dummy": {
+        "password": "dummy",
+        "uuid": "dummy",
+        "otp": "dummy"
+    }
+}
+
 def test_setup(app, client):
     global PRE_DEVICES
     res = client.get('/devices')
     assert res.status_code == 200
     actual = json.loads(res.get_data(as_text=True))
     PRE_DEVICES = actual["message"]
+
+    for key, value in USERS.items():
+        user = {
+            "username": key,
+            "password": str(hashlib.md5(str(value).encode('utf-8')).hexdigest())
+        }
+        admins[key]["uuid"] = str(hashlib.sha256(str(";".join("{field_key}:{field_value}".format(field_key=field_key, field_value=field_value) for field_key, field_value in user.items())).encode('utf-8')).hexdigest())
+
+    # login
+    res = client.post("/user/login", headers={
+        "X-UUID": admins["admin"]["uuid"]
+    })
+    assert res.status_code == 200
+    expected = 200
+    actual = json.loads(res.get_data(as_text=True))
+    assert expected == actual["status_code"]
+    admins["admin"]["otp"] = actual["message"]
+
+    # add normal user
+    res = client.post("/user/add", headers={
+        "X-UUID": admins["admin"]["uuid"],
+        "X-OTP": admins["admin"]["otp"]
+    }, data=dict(
+        fields=str(dict(
+            username="jack",
+            password=str(hashlib.md5(str(users["jack"]["password"]).encode('utf-8')).hexdigest()),
+            type="normal"
+        ))
+    ))
+    assert res.status_code == 200
+    expected = "User is added"
+    actual = json.loads(res.get_data(as_text=True))
+    assert expected == actual["message"]
+
+    users["jack"]["uuid"] = str(hashlib.sha256("username:{username};password:{password}".format(username="jack", password=str(hashlib.md5(str(users["jack"]["password"]).encode('utf-8')).hexdigest())).encode('utf-8')).hexdigest())
+
+    # login
+    res = client.post("/user/login", headers={
+        "X-UUID": users["jack"]["uuid"],
+        "X-PERM": True
+    })
+    assert res.status_code == 200
+    expected = 200
+    actual = json.loads(res.get_data(as_text=True))
+    assert expected == actual["status_code"]
+    users["jack"]["otp"] = actual["message"]
 
 # test routes
 def test_route(app, client):
@@ -51,13 +134,13 @@ def test_route(app, client):
     assert res.status_code == 500
 
     res = client.post('/device/add')
-    assert res.status_code == 400
+    assert res.status_code == 401
 
     res = client.delete('/device/{}'.format(keys["dummy"]))
     assert res.status_code == 500
 
     res = client.delete('/device/delete')
-    assert res.status_code == 400
+    assert res.status_code == 401
 
     res = client.put('/device/{}'.format(keys["dummy"]))
     assert res.status_code == 500
@@ -66,7 +149,7 @@ def test_route(app, client):
     assert res.status_code == 400
 
     res = client.put('/device/update')
-    assert res.status_code == 400
+    assert res.status_code == 401
 
     # test mismatched method and url
     res = client.get('/device/add')
@@ -133,7 +216,10 @@ def test_add(app, client):
         zone="kitchen",
         type="camera",
         name="test"
-    ))
+    ), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 200
     # test status_code
     expected = 200
@@ -148,7 +234,10 @@ def test_add(app, client):
         zone="kitchen",
         type="camera",
         name="test"
-    ))
+    ), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 403
     # test message
     expected = "Device exists"
@@ -161,7 +250,10 @@ def test_add(app, client):
         zone="kitchen",
         type="camera",
         name="test"
-    ))
+    ), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 200
     # test status_code
     expected = 200
@@ -176,7 +268,10 @@ def test_add(app, client):
         zone="kitchen",
         type="camera",
         name="test"
-    ))
+    ), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 200
     # test status_code
     expected = 200
@@ -191,7 +286,10 @@ def test_add(app, client):
         zone="bedroom",
         type="camera",
         name="test"
-    ))
+    ), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 200
     # test status_code
     expected = 200
@@ -206,7 +304,10 @@ def test_add(app, client):
         zone="kitchen",
         type="temperature",
         name="test"
-    ))
+    ), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 200
     # test status_code
     expected = 200
@@ -221,7 +322,10 @@ def test_add(app, client):
         zone="kitchen",
         type="camera",
         name="test1"
-    ))
+    ), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 200
     # test status_code
     expected = 200
@@ -236,7 +340,10 @@ def test_add(app, client):
         zone="kitchen",
         type="camera",
         name="test1"
-    ))
+    ), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 400
     # test status_code
     expected = "Bad Request: The browser (or proxy) sent a request that this server could not understand."
@@ -249,7 +356,10 @@ def test_add(app, client):
         port=90,
         zone="kitchen",
         type="camera"
-    ))
+    ), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 400
     # test status_code
     expected = "The request has unfulfilled fields"
@@ -263,10 +373,47 @@ def test_add(app, client):
         zone="kitchen",
         type="camera",
         name=""
-    ))
+    ), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 400
     # test status_code
     expected = "The request has unfulfilled fields"
+    actual = json.loads(res.get_data(as_text=True))
+    assert expected == actual["message"]
+
+    # normal user case
+    res = client.post('/device/add', data=dict(
+        ip="10.0.0.1",
+        port=90,
+        zone="kitchen",
+        type="camera",
+        name="test"
+    ), headers={
+        "X-OTP": users["jack"]["otp"],
+        "X-UUID": users["jack"]["uuid"]
+    })
+    assert res.status_code == 403
+    # test status_code
+    expected = "You don't have this permission"
+    actual = json.loads(res.get_data(as_text=True))
+    assert expected == actual["message"]
+
+    # invalid user case
+    res = client.post('/device/add', data=dict(
+        ip="10.0.0.1",
+        port=90,
+        zone="kitchen",
+        type="camera",
+        name="test"
+    ), headers={
+        "X-OTP": admins["dummy"]["otp"],
+        "X-UUID": admins["dummy"]["uuid"]
+    })
+    assert res.status_code == 401
+    # test status_code
+    expected = "You are unauthorized"
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
 
@@ -407,7 +554,10 @@ def test_device_update(app, client):
     res = client.put('/device/update', data=dict(
         key=keys["test"],
         fields=""
-    ))
+    ), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 400
     # test message
     expected = "Device is not updated"
@@ -417,7 +567,10 @@ def test_device_update(app, client):
     # non-exist field
     res = client.put('/device/update', data=dict(
         key=keys["test"]
-    ))
+    ), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 400
     # test message
     expected = "Device is not updated"
@@ -427,7 +580,10 @@ def test_device_update(app, client):
     # non-exist device
     res = client.put('/device/update', data=dict(
         key=keys["dummy"]
-    ))
+    ), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 404
     # test message
     expected = "Device not found"
@@ -445,7 +601,10 @@ def test_device_update(app, client):
     res = client.put('/device/update', data=dict(
         key=keys["test"],
         fields=str(json.dumps(fields))
-    ))
+    ), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 200
     # test message
     expected = "Device is updated"
@@ -470,7 +629,10 @@ def test_device_update(app, client):
     res = client.put('/device/update', data=dict(
         key=keys["test"],
         fields=str(json.dumps(fields))
-    ))
+    ), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 200
     # test message
     expected = "Device is updated"
@@ -501,7 +663,10 @@ def test_device_update(app, client):
     res = client.put('/device/update', data=dict(
         key=keys["test"],
         fields=str(json.dumps(fields))
-    ))
+    ), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 200
     # test message
     expected = "Device is updated"
@@ -532,7 +697,10 @@ def test_device_update(app, client):
     res = client.put('/device/update', data=dict(
         key=keys["test"],
         fields=str(json.dumps(fields))
-    ))
+    ), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 200
     # test message
     expected = "Device is updated"
@@ -563,7 +731,10 @@ def test_device_update(app, client):
     res = client.put('/device/update', data=dict(
         key=keys["test"],
         fields=str(json.dumps(fields))
-    ))
+    ), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 200
     # test message
     expected = "Device is updated"
@@ -594,7 +765,10 @@ def test_device_update(app, client):
     res = client.put('/device/update', data=dict(
         key=keys["test"],
         fields=str(json.dumps(fields))
-    ))
+    ), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 200
     # test message
     expected = "Device is updated"
@@ -624,7 +798,10 @@ def test_device_update(app, client):
     res = client.put('/device/update', data=dict(
         key=keys["test"],
         fields=str(json.dumps(fields))
-    ))
+    ), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 401
     # test message
     expected = "The request has unfulfilled fields"
@@ -637,7 +814,10 @@ def test_device_update(app, client):
     res = client.put('/device/update', data=dict(
         key=keys["test"],
         fields=str(json.dumps(fields))
-    ))
+    ), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 401
     # test message
     expected = "The request has unfulfilled fields"
@@ -650,7 +830,10 @@ def test_device_update(app, client):
     res = client.put('/device/update', data=dict(
         key=keys["test"],
         fields=str(json.dumps(fields))
-    ))
+    ), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 401
     # test message
     expected = "The request has unfulfilled fields"
@@ -663,7 +846,10 @@ def test_device_update(app, client):
     res = client.put('/device/update', data=dict(
         key=keys["test"],
         fields=str(json.dumps(fields))
-    ))
+    ), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 401
     # test message
     expected = "The request has unfulfilled fields"
@@ -676,10 +862,55 @@ def test_device_update(app, client):
     res = client.put('/device/update', data=dict(
         key=keys["test"],
         fields=str(json.dumps(fields))
-    ))
+    ), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 401
     # test message
     expected = "The request has unfulfilled fields"
+    actual = json.loads(res.get_data(as_text=True))
+    assert expected == actual["message"]
+
+    # normal user access
+    fields = dict(
+        ip="10.0.0.2",
+        port=91,
+        zone="bedroom",
+        type="temperature",
+        name="test1"
+    )
+    res = client.put('/device/update', data=dict(
+        key=keys["test"],
+        fields=str(json.dumps(fields))
+    ), headers={
+        "X-OTP": users["jack"]["otp"],
+        "X-UUID": users["jack"]["uuid"]
+    })
+    assert res.status_code == 403
+    # test message
+    expected = "You don't have this permission"
+    actual = json.loads(res.get_data(as_text=True))
+    assert expected == actual["message"]
+
+    # invalid user access
+    fields = dict(
+        ip="10.0.0.2",
+        port=91,
+        zone="bedroom",
+        type="temperature",
+        name="test1"
+    )
+    res = client.put('/device/update', data=dict(
+        key=keys["test"],
+        fields=str(json.dumps(fields))
+    ), headers={
+        "X-OTP": admins["dummy"]["otp"],
+        "X-UUID": admins["dummy"]["uuid"]
+    })
+    assert res.status_code == 401
+    # test message
+    expected = "You are unauthorized"
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
 
@@ -812,11 +1043,17 @@ def test_device_event(app, client):
     # tear down
     res = client.delete('/event/delete', data=dict(
         which=events[0]["uuid"]
-    ))
+    ), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 200
     res = client.delete('/event/delete', data=dict(
         which=events[1]["uuid"]
-    ))
+    ), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 200
 
     res = client.put('/event/clear')
@@ -828,7 +1065,10 @@ def test_delete(app, client):
     # delete sufficient case
     res = client.delete('/device/delete', data=dict(
         key=keys["test"]
-    ))
+    ), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 200
     # test status_code
     expected = "Device is deleted"
@@ -837,7 +1077,10 @@ def test_delete(app, client):
 
     res = client.delete('/device/delete', data=dict(
         key=keys["ip"]
-    ))
+    ), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 200
     # test status_code
     expected = "Device is deleted"
@@ -846,7 +1089,10 @@ def test_delete(app, client):
 
     res = client.delete('/device/delete', data=dict(
         key=keys["port"]
-    ))
+    ), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 200
     # test status_code
     expected = "Device is deleted"
@@ -855,7 +1101,10 @@ def test_delete(app, client):
 
     res = client.delete('/device/delete', data=dict(
         key=keys["zone"]
-    ))
+    ), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 200
     # test status_code
     expected = "Device is deleted"
@@ -864,7 +1113,10 @@ def test_delete(app, client):
 
     res = client.delete('/device/delete', data=dict(
         key=keys["type"]
-    ))
+    ), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 200
     # test status_code
     expected = "Device is deleted"
@@ -873,7 +1125,10 @@ def test_delete(app, client):
 
     res = client.delete('/device/delete', data=dict(
         key=keys["name"]
-    ))
+    ), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 200
     # test status_code
     expected = "Device is deleted"
@@ -883,10 +1138,39 @@ def test_delete(app, client):
     # delete non-exist case
     res = client.delete('/device/delete', data=dict(
         key=keys["dummy"]
-    ))
+    ), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 404
     # test status_code
     expected = "Device not found"
+    actual = json.loads(res.get_data(as_text=True))
+    assert expected == actual["message"]
+
+    # normal user case
+    res = client.delete('/device/delete', data=dict(
+        key=keys["test"]
+    ), headers={
+        "X-OTP": users["jack"]["otp"],
+        "X-UUID": users["jack"]["uuid"]
+    })
+    assert res.status_code == 403
+    # test status_code
+    expected = "You don't have this permission"
+    actual = json.loads(res.get_data(as_text=True))
+    assert expected == actual["message"]
+
+    # invalid user case
+    res = client.delete('/device/delete', data=dict(
+        key=keys["test"]
+    ), headers={
+        "X-OTP": admins["dummy"]["otp"],
+        "X-UUID": admins["dummy"]["uuid"]
+    })
+    assert res.status_code == 401
+    # test status_code
+    expected = "You are unauthorized"
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
 
@@ -898,3 +1182,25 @@ def test_devices_empty(app, client):
     expected = PRE_DEVICES
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
+
+def test_teardown(app, client):
+    # sufficient case
+    res = client.delete("/user/delete", headers={
+        "X-UUID": admins["admin"]["uuid"],
+        "X-OTP": admins["admin"]["otp"]
+    }, data={
+        "uuid": users["jack"]["uuid"]
+    })
+    assert res.status_code == 200
+    expected = "User is deleted"
+    actual = json.loads(res.get_data(as_text=True))
+    assert expected == actual["message"]
+
+    res = client.post("/user/login", headers={
+        "X-UUID": admins["admin"]["uuid"]
+    })
+    assert res.status_code == 200
+    expected = 200
+    actual = json.loads(res.get_data(as_text=True))
+    assert expected == actual["status_code"]
+    admins["admin"]["otp"] = actual["message"]
