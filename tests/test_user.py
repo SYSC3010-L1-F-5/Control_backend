@@ -18,7 +18,7 @@ import json
 import hashlib
 
 from lib.libconfig import LibConfig
-CONFIG = LibConfig().fetch()
+CONFIG = LibConfig(config="test.yml").fetch()
 USERS = CONFIG["users"]
 admins = {
     "admin": {

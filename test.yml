@@ -1,0 +1,24 @@
+users:
+    admin: "password" # for test, DO NOT CHANGE
+    root: "root" # for test, DO NOT CHANGE
+
+database:
+    name: "test.db"
+
+plugins:
+    SenseHAT: true
+
+# Below are temporary settings
+# Future implementations are not in SYSC 3010 project scope
+threshold:
+    temperature: 
+        upper: 30
+        lower: 20
+    humidity: 
+        upper: 70
+        lower: 20
+    pressure: 
+        upper: 1200
+        lower: 800
+
+email: ""

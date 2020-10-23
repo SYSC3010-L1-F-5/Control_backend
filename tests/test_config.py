@@ -21,7 +21,7 @@ def test_config(app, client):
     assert expected == json.loads(res.get_data(as_text=True))["message"]
 
 def __get_config():
-    path = os.path.join(pathlib.Path(__file__).parent.absolute(), "..", "config.yml")
+    path = os.path.join(pathlib.Path(__file__).parent.absolute(), "..", "test.yml")
     try:
         config = yaml.safe_load(open(path, "r"))
     except yaml.YAMLError as e:
