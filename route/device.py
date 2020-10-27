@@ -82,36 +82,45 @@ class Device(Resource):
         if path not in urls:
             return "Incorrect HTTP Method", 400
         
-        # /deivces
-        if path.split("/")[1] == "devices":
+        PARASER.add_argument('X-UUID', type=str, location='headers', help='User UUID')
+        PARASER.add_argument('X-OTP', type=str, location='headers', help='User OTP')
+        args = PARASER.parse_args(strict=True)
+        self.auth_uuid = args["X-UUID"]
+        self.auth_otp = args["X-OTP"]
 
-            devices = LIBDEVICE.get_all_devices()
-            if devices is not None:
-                # hide device key
-                for item in devices:
-                    item["key"] = ""
+        if LIBUSER.check_otp(uuid=self.auth_uuid, otp=self.auth_otp) is False:
+            # /deivces
+            if path.split("/")[1] == "devices":
 
-            return devices, 200
-        
-        # /device/<key>
-        if path.split("/")[2] == key:
-            details = LIBDEVICE.details(key)
-            if details is not None:
-                events = LIBEVENT.device(key)
-                if events is not None:
-                    # Hide the device key
-                    for item in events:
-                        item["device"] = ""
-                details["key"] = ""
-                message = dict(
-                    device = details,
-                    events = events
-                )
-                return message, 200
-            else:
-                return "Device not found", 404
-        
-        return "", 404
+                devices = LIBDEVICE.get_all_devices()
+                if devices is not None:
+                    # hide device key
+                    for item in devices:
+                        item["key"] = ""
+
+                return devices, 200
+            
+            # /device/<key>
+            if path.split("/")[2] == key:
+                details = LIBDEVICE.details(key)
+                if details is not None:
+                    events = LIBEVENT.device(key)
+                    if events is not None:
+                        # Hide the device key
+                        for item in events:
+                            item["device"] = ""
+                    details["key"] = ""
+                    message = dict(
+                        device = details,
+                        events = events
+                    )
+                    return message, 200
+                else:
+                    return "Device not found", 404
+            
+            return "", 404
+        else:
+            return "You are unauthorized", 401
 
     @response
     def post(self):

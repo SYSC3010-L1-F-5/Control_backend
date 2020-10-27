@@ -162,7 +162,10 @@ def test_setup(app, client):
     keys["test1"] = actual["message"]
 
     global PRE_EVENTS
-    res = client.get('/events')
+    res = client.get('/events', headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 200
     actual = json.loads(res.get_data(as_text=True))
     PRE_EVENTS = actual["message"]
@@ -170,13 +173,25 @@ def test_setup(app, client):
 # test routes
 def test_route(app, client):
     res = client.get('/events')
+    assert res.status_code == 401
+
+    res = client.get('/events', headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 200
 
     res = client.get('/events1')
     assert res.status_code == 404
 
-    res = client.get('/event/{}'.format(uuids["dummy"]))
+    res = client.get('/event/{}'.format(uuids["dummy"]), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 404
+
+    res = client.get('/event/{}'.format(uuids["dummy"]))
+    assert res.status_code == 401
 
     res = client.post('/event/{}'.format(uuids["dummy"]))
     assert res.status_code == 500
@@ -465,6 +480,16 @@ def test_add(app, client):
 # test events list
 def test_events_full(app, client):
     res = client.get('/events')
+    assert res.status_code == 401
+    # test status_code
+    expected = 401
+    actual = json.loads(res.get_data(as_text=True))
+    assert expected == actual["status_code"]
+
+    res = client.get('/events', headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 200
     # test status_code
     expected = 200
@@ -473,7 +498,10 @@ def test_events_full(app, client):
 
 def test_event_key(app, client):
     # sufficient case
-    res = client.get('/event/{}'.format(uuids["who1"]))
+    res = client.get('/event/{}'.format(uuids["who1"]), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 200
     # test message
     event = dict(
@@ -491,7 +519,10 @@ def test_event_key(app, client):
     assert event == actual["message"]
 
     # event with different device
-    res = client.get('/event/{}'.format(uuids["who2"]))
+    res = client.get('/event/{}'.format(uuids["who2"]), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 200
     # test message
     event = dict(
@@ -509,7 +540,10 @@ def test_event_key(app, client):
     assert event == actual["message"]
 
     # event with different what.type
-    res = client.get('/event/{}'.format(uuids["what.type"]))
+    res = client.get('/event/{}'.format(uuids["what.type"]), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 200
     # test message
     event = dict(
@@ -527,7 +561,10 @@ def test_event_key(app, client):
     assert event == actual["message"]
 
     # event with different what.data
-    res = client.get('/event/{}'.format(uuids["what.data"]))
+    res = client.get('/event/{}'.format(uuids["what.data"]), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 200
     # test message
     event = dict(
@@ -545,7 +582,10 @@ def test_event_key(app, client):
     assert event == actual["message"]
 
     # event with different when
-    res = client.get('/event/{}'.format(uuids["when"]))
+    res = client.get('/event/{}'.format(uuids["when"]), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 200
     # test message
     event = dict(
@@ -563,12 +603,57 @@ def test_event_key(app, client):
     assert event == actual["message"]
 
     # non-exist event
-    res = client.get('/event/{}'.format(uuids["dummy"]))
+    res = client.get('/event/{}'.format(uuids["dummy"]), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 404
     # test message
     expected = "Event not found"
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
+
+    # invalid otp
+    res = client.get('/event/{}'.format(uuids["who1"]), headers={
+        "X-OTP": admins["dummy"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
+    assert res.status_code == 401
+    # test message
+    event = "You are unauthorized"
+    actual = json.loads(res.get_data(as_text=True))
+    assert event == actual["message"]
+
+    # invalid uuid
+    res = client.get('/event/{}'.format(uuids["who1"]), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["dummy"]["uuid"]
+    })
+    assert res.status_code == 401
+    # test message
+    event = "You are unauthorized"
+    actual = json.loads(res.get_data(as_text=True))
+    assert event == actual["message"]
+
+    # missing otp
+    res = client.get('/event/{}'.format(uuids["who1"]), headers={
+        "X-UUID": admins["admin"]["uuid"]
+    })
+    assert res.status_code == 401
+    # test message
+    event = "You are unauthorized"
+    actual = json.loads(res.get_data(as_text=True))
+    assert event == actual["message"]
+
+    # missing uuid
+    res = client.get('/event/{}'.format(uuids["who1"]), headers={
+        "X-UUID": admins["dummy"]["uuid"]
+    })
+    assert res.status_code == 401
+    # test message
+    event = "You are unauthorized"
+    actual = json.loads(res.get_data(as_text=True))
+    assert event == actual["message"]
 
 def test_event_clear(app, client):
     res = client.put('/event/clear')
@@ -640,7 +725,10 @@ def test_event_update(app, client):
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
     uuids["who1"] = actual["message"]
-    res = client.get('/event/{}'.format(uuids["who1"]))
+    res = client.get('/event/{}'.format(uuids["who1"]), headers={
+        "X-UUID": admins["admin"]["uuid"],
+        "X-OTP": admins["admin"]["otp"]
+    })
     assert res.status_code == 200
     # test message
     event = dict(
@@ -681,7 +769,10 @@ def test_event_update(app, client):
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
     uuids["who2"] = actual["message"]
-    res = client.get('/event/{}'.format(uuids["who2"]))
+    res = client.get('/event/{}'.format(uuids["who2"]), headers={
+        "X-UUID": admins["admin"]["uuid"],
+        "X-OTP": admins["admin"]["otp"]
+    })
     assert res.status_code == 200
     # test message
     event = dict(
@@ -723,7 +814,10 @@ def test_event_update(app, client):
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
     uuids["what.type"] = actual["message"]
-    res = client.get('/event/{}'.format(uuids["what.type"]))
+    res = client.get('/event/{}'.format(uuids["what.type"]), headers={
+        "X-UUID": admins["admin"]["uuid"],
+        "X-OTP": admins["admin"]["otp"]
+    })
     assert res.status_code == 200
     # test message
     event = dict(
@@ -765,7 +859,10 @@ def test_event_update(app, client):
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
     uuids["what.data"] = actual["message"]
-    res = client.get('/event/{}'.format(uuids["what.data"]))
+    res = client.get('/event/{}'.format(uuids["what.data"]), headers={
+        "X-UUID": admins["admin"]["uuid"],
+        "X-OTP": admins["admin"]["otp"]
+    })
     assert res.status_code == 200
     # test message
     event = dict(
@@ -935,6 +1032,25 @@ def test_delete(app, client):
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
 
+# test empty events list
+def test_events_empty(app, client):
+    res = client.get('/events')
+    assert res.status_code == 401
+    # test status_code
+    expected = "You are unauthorized"
+    actual = json.loads(res.get_data(as_text=True))
+    assert expected == actual["message"]
+
+    res = client.get('/events', headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
+    assert res.status_code == 200
+    # test status_code
+    expected = PRE_EVENTS
+    actual = json.loads(res.get_data(as_text=True))
+    assert expected == actual["message"]
+
 def test_teardown(app, client):
     res = client.delete('/device/delete', data=dict(
         key=keys["test"]
@@ -972,20 +1088,12 @@ def test_teardown(app, client):
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
 
-    res = client.post("/user/login", headers={
-        "X-UUID": admins["admin"]["uuid"]
+    res = client.delete("/user/logout", headers={
+        "X-UUID": admins["admin"]["uuid"],
+        "X-OTP": admins["admin"]["otp"]
     })
     assert res.status_code == 200
-    expected = 200
-    actual = json.loads(res.get_data(as_text=True))
-    assert expected == actual["status_code"]
-    admins["admin"]["otp"] = actual["message"]
-
-# test empty events list
-def test_events_empty(app, client):
-    res = client.get('/events')
-    assert res.status_code == 200
-    # test status_code
-    expected = PRE_EVENTS
+    expected = "You are logged out"
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
+    admins["admin"]["otp"] = actual["message"]

@@ -67,11 +67,6 @@ users = {
 }
 
 def test_setup(app, client):
-    global PRE_DEVICES
-    res = client.get('/devices')
-    assert res.status_code == 200
-    actual = json.loads(res.get_data(as_text=True))
-    PRE_DEVICES = actual["message"]
 
     for key, value in USERS.items():
         user = {
@@ -119,15 +114,36 @@ def test_setup(app, client):
     assert expected == actual["status_code"]
     users["jack"]["otp"] = actual["message"]
 
+    global PRE_DEVICES
+    res = client.get('/devices', headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
+    assert res.status_code == 200
+    actual = json.loads(res.get_data(as_text=True))
+    PRE_DEVICES = actual["message"]
+
 # test routes
 def test_route(app, client):
-    res = client.get('/devices')
+    res = client.get('/devices', headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 200
+
+    res = client.get('/devices')
+    assert res.status_code == 401
 
     res = client.get('/device1')
     assert res.status_code == 404
 
     res = client.get('/device/{}'.format(keys["dummy"]))
+    assert res.status_code == 401
+
+    res = client.get('/device/{}'.format(keys["dummy"]), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 404
 
     res = client.post('/device/{}'.format(keys["dummy"]))
@@ -419,7 +435,10 @@ def test_add(app, client):
 
 # test devices list
 def test_devices_full(app, client):
-    res = client.get('/devices')
+    res = client.get('/devices', headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 200
     # test status_code
     expected = 200
@@ -428,7 +447,10 @@ def test_devices_full(app, client):
 
 def test_device_key(app, client):
     # sufficient case
-    res = client.get('/device/{}'.format(keys["test"]))
+    res = client.get('/device/{}'.format(keys["test"]), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 200
     # test message
     device = dict(
@@ -447,7 +469,10 @@ def test_device_key(app, client):
     assert device == actual["message"]["device"]
 
     # device with different ip
-    res = client.get('/device/{}'.format(keys["ip"]))
+    res = client.get('/device/{}'.format(keys["ip"]), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 200
     # test message
     device = dict(
@@ -466,7 +491,10 @@ def test_device_key(app, client):
     assert device == actual["message"]["device"]
 
     # device with different port
-    res = client.get('/device/{}'.format(keys["port"]))
+    res = client.get('/device/{}'.format(keys["port"]), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 200
     # test message
     device = dict(
@@ -485,7 +513,10 @@ def test_device_key(app, client):
     assert device == actual["message"]["device"]
 
     # device with different zone
-    res = client.get('/device/{}'.format(keys["zone"]))
+    res = client.get('/device/{}'.format(keys["zone"]), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 200
     # test message
     device = dict(
@@ -504,7 +535,10 @@ def test_device_key(app, client):
     assert device == actual["message"]["device"]
 
     # device with different type
-    res = client.get('/device/{}'.format(keys["type"]))
+    res = client.get('/device/{}'.format(keys["type"]), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 200
     # test message
     device = dict(
@@ -523,7 +557,10 @@ def test_device_key(app, client):
     assert device == actual["message"]["device"]
 
     # device with different name
-    res = client.get('/device/{}'.format(keys["name"]))
+    res = client.get('/device/{}'.format(keys["name"]), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 200
     # test message
     device = dict(
@@ -542,10 +579,51 @@ def test_device_key(app, client):
     assert device == actual["message"]["device"]
 
     # non-exist device
-    res = client.get('/device/{}'.format(keys["dummy"]))
+    res = client.get('/device/{}'.format(keys["dummy"]), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 404
     # test message
     expected = "Device not found"
+    actual = json.loads(res.get_data(as_text=True))
+    assert expected == actual["message"]
+
+    # invalid otp
+    res = client.get('/device/{}'.format(keys["test"]), headers={
+        "X-OTP": admins["dummy"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
+    assert res.status_code == 401
+    expected = "You are unauthorized"
+    actual = json.loads(res.get_data(as_text=True))
+    assert expected == actual["message"]
+
+    # invalid uuid
+    res = client.get('/device/{}'.format(keys["test"]), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["dummy"]["uuid"]
+    })
+    assert res.status_code == 401
+    expected = "You are unauthorized"
+    actual = json.loads(res.get_data(as_text=True))
+    assert expected == actual["message"]
+
+    # missing otp
+    res = client.get('/device/{}'.format(keys["test"]), headers={
+        "X-UUID": admins["admin"]["uuid"]
+    })
+    assert res.status_code == 401
+    expected = "You are unauthorized"
+    actual = json.loads(res.get_data(as_text=True))
+    assert expected == actual["message"]
+
+    # missing uuid
+    res = client.get('/device/{}'.format(keys["test"]), headers={
+        "X-OTP": admins["admin"]["otp"]
+    })
+    assert res.status_code == 401
+    expected = "You are unauthorized"
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
 
@@ -610,7 +688,10 @@ def test_device_update(app, client):
     expected = "Device is updated"
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
-    res = client.get('/device/{}'.format(keys["test"]))
+    res = client.get('/device/{}'.format(keys["test"]), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 200
     # test message
     device = fields
@@ -638,7 +719,10 @@ def test_device_update(app, client):
     expected = "Device is updated"
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
-    res = client.get('/device/{}'.format(keys["test"]))
+    res = client.get('/device/{}'.format(keys["test"]), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 200
     # test message
     device = dict(
@@ -672,7 +756,10 @@ def test_device_update(app, client):
     expected = "Device is updated"
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
-    res = client.get('/device/{}'.format(keys["test"]))
+    res = client.get('/device/{}'.format(keys["test"]), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 200
     # test message
     device = dict(
@@ -706,7 +793,10 @@ def test_device_update(app, client):
     expected = "Device is updated"
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
-    res = client.get('/device/{}'.format(keys["test"]))
+    res = client.get('/device/{}'.format(keys["test"]), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 200
     # test message
     device = device = dict(
@@ -740,7 +830,10 @@ def test_device_update(app, client):
     expected = "Device is updated"
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
-    res = client.get('/device/{}'.format(keys["test"]))
+    res = client.get('/device/{}'.format(keys["test"]), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 200
     # test message
     device = device = dict(
@@ -774,7 +867,10 @@ def test_device_update(app, client):
     expected = "Device is updated"
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
-    res = client.get('/device/{}'.format(keys["test"]))
+    res = client.get('/device/{}'.format(keys["test"]), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 200
     # test message
     device = device = device = dict(
@@ -1016,7 +1112,10 @@ def test_device_event(app, client):
     events[1]["uuid"] = json.loads(res.get_data(as_text=True))["message"]
 
     # test events
-    res = client.get('/device/{}'.format(keys["test"]))
+    res = client.get('/device/{}'.format(keys["test"]), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 200
     # test message
     test_events = [
@@ -1176,7 +1275,10 @@ def test_delete(app, client):
 
 # test empty devices list
 def test_devices_empty(app, client):
-    res = client.get('/devices')
+    res = client.get('/devices', headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 200
     # test status_code
     expected = PRE_DEVICES
@@ -1196,11 +1298,12 @@ def test_teardown(app, client):
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
 
-    res = client.post("/user/login", headers={
-        "X-UUID": admins["admin"]["uuid"]
+    res = client.delete("/user/logout", headers={
+        "X-UUID": admins["admin"]["uuid"],
+        "X-OTP": admins["admin"]["otp"]
     })
     assert res.status_code == 200
-    expected = 200
+    expected = "You are logged out"
     actual = json.loads(res.get_data(as_text=True))
-    assert expected == actual["status_code"]
+    assert expected == actual["message"]
     admins["admin"]["otp"] = actual["message"]

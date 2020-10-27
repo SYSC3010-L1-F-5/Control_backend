@@ -96,30 +96,40 @@ class Event(Resource):
         if path not in urls:
             return "Incorrect HTTP Method", 400
 
-        # /events
-        if path.split("/")[1] == "events":
+        PARASER.add_argument('X-UUID', type=str, location='headers', help='User UUID')
+        PARASER.add_argument('X-OTP', type=str, location='headers', help='User OTP')
+        args = PARASER.parse_args(strict=True)
+        self.auth_uuid = args["X-UUID"]
+        self.auth_otp = args["X-OTP"]
 
-            events = LIBEVENT.get_all_events()
-            if events is not None:
-                for item in events:
-                    item["device"] = LIBDEVICE.details(item["device"])
-                    if item["device"] is not None:
-                        item["device"]["key"] = ""
+        if LIBUSER.check_otp(uuid=self.auth_uuid, otp=self.auth_otp) is False:
+            # /events
+            if path.split("/")[1] == "events":
 
-            return events, 200
+                events = LIBEVENT.get_all_events()
+                if events is not None:
+                    for item in events:
+                        item["device"] = LIBDEVICE.details(item["device"])
+                        if item["device"] is not None:
+                            item["device"]["key"] = ""
+
+                return events, 200
+            
+            # /event/<uuid>
+            if path.split("/")[2] == uuid:
+                details = LIBEVENT.details(uuid)
+                if details is not None:
+                    details["device"] = LIBDEVICE.details(details["device"])
+                    # Hide the key
+                    details["device"]["key"] = ""
+                    return details, 200
+                else:
+                    return "Event not found", 404
         
-        # /event/<uuid>
-        if path.split("/")[2] == uuid:
-            details = LIBEVENT.details(uuid)
-            if details is not None:
-                details["device"] = LIBDEVICE.details(details["device"])
-                # Hide the key
-                details["device"]["key"] = ""
-                return details, 200
-            else:
-                return "Event not found", 404
-        
-        return "", 404
+            return "", 404
+
+        else:
+            return "You are unauthorized", 401
 
     @response
     def post(self):
@@ -157,7 +167,6 @@ class Event(Resource):
         self.what = args["what"]
         self.when = args["when"]
 
-        # python issue
         if self.__is_empty_or_none(self.who, self.what, self.when) is False:
 
             self.what = json.loads(self.what.replace("'", '"'))

@@ -7,3 +7,5 @@ test.db
 *.bak
 *.db-journal
 *.test.*
+.pytest_cache
+.vscode
