@@ -49,14 +49,12 @@ def response(func):
             }
             return result, status_code
         except Exception as e:
-            status_code = re.sub(r'[\D]', '', str(e))
-            message = re.sub(r'[^\D\s]', '', str(e)).lstrip()
             result = {
-                "message": __message(status_code, message),
-                "status_code": status_code,
+                "message": __message(500, str(e)),
+                "status_code": 500,
                     "time": int(time.time() * 1000)
             }
-            return result, status_code
+            return result, 500
     return wrapper
 
 def errorhandler(status_code):
