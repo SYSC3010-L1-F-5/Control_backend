@@ -51,7 +51,7 @@ class LibEvent:
             "value": uuid
         }
 
-        data = self.database.get(where=where)
+        data = Database("events").get(where=where)
 
         # only one entity should be returnd
         if len(data) == 0:
@@ -82,7 +82,7 @@ class LibEvent:
             "value": "DESC"
         }
 
-        data = self.database.get(where=where, order=order)
+        data = Database("events").get(where=where, order=order)
 
         if len(data) == 0:
             return None
@@ -121,7 +121,7 @@ class LibEvent:
             "value": "DESC"
         }
 
-        events = self.database.get(order=order)
+        events = Database("events").get(order=order)
 
         if len(events) == 0:
             return None
@@ -146,7 +146,7 @@ class LibEvent:
         details["uuid"] = event_uuid
         details["hidden"] = 0
 
-        is_inserted = self.database.insert(data=details)
+        is_inserted = Database("events").insert(data=details)
 
         if is_inserted is True:
             return event_uuid
@@ -173,7 +173,7 @@ class LibEvent:
                 "name": "uuid",
                 "value": uuid
             }
-            is_deleted = self.database.remove(where)
+            is_deleted = Database("events").remove(where)
 
         return is_deleted
 
@@ -198,6 +198,6 @@ class LibEvent:
                 "name": "uuid",
                 "value": uuid
             }
-            is_updated = self.database.update(where=where, set=set)
+            is_updated = Database("events").update(where=where, set=set)
 
         return is_updated

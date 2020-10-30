@@ -52,7 +52,7 @@ class LibDevice:
             "value": key
         }
 
-        data = self.database.get(where=where)
+        data = Database("devices").get(where=where)
 
         # only one entity should be returnd
         if len(data) == 0:
@@ -92,7 +92,7 @@ class LibDevice:
             "value": "DESC"
         }
 
-        devices = self.database.get(order=order)
+        devices = Database("devices").get(order=order)
 
         if len(devices) == 0:
             return None
@@ -119,7 +119,7 @@ class LibDevice:
         details["key"] = device_key
         details["pulse"] = -1
 
-        is_inserted = self.database.insert(data=details)
+        is_inserted = Database("devices").insert(data=details)
 
         if is_inserted is True:
             return device_key
@@ -146,7 +146,7 @@ class LibDevice:
                 "name": "key",
                 "value": key
             }
-            is_deleted = self.database.remove(where)
+            is_deleted = Database("devices").remove(where)
 
         return is_deleted
 
@@ -171,7 +171,7 @@ class LibDevice:
                 "name": "key",
                 "value": key
             }
-            is_updated = self.database.update(where=where, set=set)
+            is_updated = Database("devices").update(where=where, set=set)
 
         return is_updated
         

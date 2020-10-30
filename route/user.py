@@ -70,9 +70,9 @@ class User(Resource):
             if self.__is_empty_or_none(self.uuid, self.otp) is False:
                 if LIBUSER.check_otp(uuid=self.uuid, otp=self.otp) is False:
                     user_details = LIBUSER.details(self.uuid)
-                    user_details["password"] = ""
-                    user_details["otp"] = ""
-                    user_details["otp_time"] = ""
+                    user_details.pop("password")
+                    user_details.pop("otp")
+                    user_details.pop("otp_time")
                     return user_details, 200
                 else:
                     return "You are unauthorized", 401
@@ -90,9 +90,9 @@ class User(Resource):
                         users = LIBUSER.get_all_users()
                         if users is not None:
                             for item in users:
-                                item["password"] = ""
-                                item["otp"] = ""
-                                item["otp_time"] = ""
+                                item.pop("password")
+                                item.pop("otp")
+                                item.pop("otp_time")
                         return users, 200
                     else:
                         return "You don't have this permission", 403
@@ -111,9 +111,9 @@ class User(Resource):
                     if LIBUSER.is_admin(self.uuid) is True:
                         user_details = LIBUSER.details(uuid)
                         if user_details is not None:
-                            user_details["password"] = ""
-                            user_details["otp"] = ""
-                            user_details["otp_time"] = ""
+                            user_details.pop("password")
+                            user_details.pop("otp")
+                            user_details.pop("otp_time")
                             return user_details, 200
                         else:
                             return "User not found", 404
@@ -180,7 +180,9 @@ class User(Resource):
                     if LIBUSER.is_admin(self.uuid):
                         if self.__is_empty_or_none(args["uuid"]) is False:
                             self.uuid = args["uuid"]
-
+                    else:
+                        return "You don't have this permission", 403
+                            
                     is_deleted = LIBUSER.delete_user(self.uuid)
                     if is_deleted is True:
                         return "User is deleted", 200
@@ -245,7 +247,7 @@ class User(Resource):
                 if LIBUSER.check_otp(uuid=self.uuid, otp=self.otp) is False:
                     if LIBUSER.is_admin(self.uuid):
                         fields = json.loads(args["fields"].replace("'", '"'))
-                        # "username:<username>;password:<password md5>;type:<type>"
+                        # "username:<username>;password:<password md5>"
                         required_fields = [
                             "username",
                             "password",
@@ -310,31 +312,48 @@ class User(Resource):
             if self.__is_empty_or_none(self.uuid, self.otp, fields) is False:
                 if LIBUSER.check_otp(uuid=self.uuid, otp=self.otp) is False:
                     fields = json.loads(args["fields"].replace("'", '"'))
-
+                    updated_fields = []
+                    failed_to_update_fields = []
+                    
                     if LIBUSER.is_admin(self.uuid):
                         if "uuid" in fields:
                             if self.__is_empty_or_none(fields["uuid"]) is False and LIBUSER.is_exists(fields["uuid"]) is True:
                                 self.uuid = fields["uuid"]
                             else:
                                 return "Invalid UUID", 400
-                        
+                            
                         if "type" in fields:
                             if self.__is_empty_or_none(fields["type"]) is False:
                                 set = {
                                     "name": "type",
-                                    "value": fields["type"]
+                                    "value": fields["type"],
+                                    "skip": False
                                 }
-                                LIBUSER.update_user(self.uuid, set)
+                                is_updated = LIBUSER.update_user(self.uuid, set)
+
+                                if is_updated is True:
+                                    updated_fields.append("Type")
+                                else:
+                                    failed_to_update_fields.append("Type")
+                                    
                             else:
                                 return "The request has unfulfilled fields", 400
+                    else:
+                        return "You don't have this permission", 403
 
                     if "username" in fields:
                         if self.__is_empty_or_none(fields["username"]) is False:
                             set = {
                                 "name": "username",
-                                "value": fields["username"]
+                                "value": fields["username"],
+                                "skip": False
                             }
-                            LIBUSER.update_user(self.uuid, set)
+                            is_updated = LIBUSER.update_user(self.uuid, set)
+
+                            if is_updated is True:
+                                updated_fields.append("Username")
+                            else:
+                                failed_to_update_fields.append("Username")
                         else:
                             return "The request has unfulfilled fields", 400
 
@@ -342,9 +361,15 @@ class User(Resource):
                         if self.__is_empty_or_none(fields["password"]) is False:
                             set = {
                                 "name": "password",
-                                "value": fields["password"]
+                                "value": fields["password"],
+                                "skip": False
                             }
-                            LIBUSER.update_user(self.uuid, set)
+                            is_updated = LIBUSER.update_user(self.uuid, set)
+
+                            if is_updated is True:
+                                updated_fields.append("Password")
+                            else:
+                                failed_to_update_fields.append("Password")
                         else:
                             return "The request has unfulfilled fields", 400
                     
@@ -352,9 +377,15 @@ class User(Resource):
                         if self.__is_empty_or_none(fields["email"]) is False:
                             set = {
                                 "name": "email",
-                                "value": fields["email"]
+                                "value": fields["email"],
+                                "skip": False
                             }
-                            LIBUSER.update_user(self.uuid, set)
+                            is_updated = LIBUSER.update_user(self.uuid, set)
+
+                            if is_updated is True:
+                                updated_fields.append("Email")
+                            else:
+                                failed_to_update_fields.appen("Email")
                         else:
                             return "The request has unfulfilled fields", 400
 
@@ -369,11 +400,21 @@ class User(Resource):
                     self.uuid = LIBUSER.uuid(uuid_template)
                     set = {
                         "name": "uuid",
-                        "value": self.uuid
+                        "value": self.uuid,
+                        "skip": True
                     }
                     LIBUSER.update_user(old_uuid, set)
 
-                    return "User is updated", 200
+                    if len(updated_fields) == 0:
+                        if len(failed_to_update_fields) == 1:
+                            return ((', '.join('{}'.format(key) for key in failed_to_update_fields)) + " is not being updated"), 400
+                        else:
+                            return ((', '.join('{}'.format(key) for key in failed_to_update_fields)) + " are not being updated"), 400
+                    else:
+                        if len(updated_fields) == 1:
+                            return ((', '.join('{}'.format(key) for key in updated_fields)) + " has been updated"), 200
+                        else:
+                            return ((', '.join('{}'.format(key) for key in updated_fields)) + " have been updated"), 200
                 else:
                     return "You are unauthorized", 401
             else:

@@ -4,7 +4,6 @@ from lib.database import Database
 from lib.key import Key
 from lib.libconfig import LibConfig
 CONFIG = LibConfig().fetch()
-import hashlib
 
 class LibUser:
 
@@ -44,9 +43,10 @@ class LibUser:
                 "email": "",
                 "type": "admin",
                 "otp": "",
-                "otp_time": -1
+                "otp_time": 0,
+                "last_login": -1
             }
-            is_inserted = self.database.insert(data=item_struct)
+            is_inserted = Database("users").insert(data=item_struct)
 
             if is_inserted is True:
                 print("User {user} {uuid} is initialized".format(user=key, uuid=user_uuid))
@@ -76,9 +76,10 @@ class LibUser:
             "email": "",
             "type": user_type,
             "otp": "",
-            "otp_time": -1
+            "otp_time": 0,
+            "last_login": -1
         }
-        is_inserted = self.database.insert(data=item_struct)
+        is_inserted = Database("users").insert(data=item_struct)
 
         return is_inserted
 
@@ -104,7 +105,7 @@ class LibUser:
                 "name": "uuid",
                 "value": uuid
             }
-            is_deleted = self.database.remove(where)
+            is_deleted = Database("users").remove(where)
 
         return is_deleted
         
@@ -150,7 +151,8 @@ class LibUser:
         if is_exists is True:
             data_struct = {
                 "otp": Key().generate(),
-                "otp_time": int(time.time() * 1000) + (30 * 60 * 1000) # by default, user login expires in 30 mins
+                "otp_time": int(time.time() * 1000) + (30 * 60 * 1000), # by default, user login expires in 30 mins
+                "last_login": int(time.time() * 1000)
             }
             if permanent is True:
                 data_struct["otp_time"] = -1
@@ -159,7 +161,8 @@ class LibUser:
             for key, value in data_struct.items():
                 set = {
                     "name": key,
-                    "value": value
+                    "value": value,
+                    "skip": False
                 }
                 self.update_user(uuid=uuid, set=set)
         
@@ -218,12 +221,14 @@ class LibUser:
         if user_details is not None:
             set = {
                 "name": "otp",
-                "value": None
+                "value": None,
+                "skip": False
             }
             self.update_user(uuid=uuid, set=set)
             set = {
                 "name": "otp_time",
-                "value": 0
+                "value": 0,
+                "skip": False
             }
             self.update_user(uuid=uuid, set=set)
             is_expired = True
@@ -249,7 +254,7 @@ class LibUser:
             "value": uuid
         }
 
-        data = self.database.get(where=where)
+        data = Database("users").get(where=where)
 
         # only one entity should be returnd
         if len(data) == 0:
@@ -278,7 +283,7 @@ class LibUser:
                 "name": "uuid",
                 "value": uuid
             }
-            is_updated = self.database.update(where=where, set=set)
+            is_updated = Database("users").update(where=where, set=set)
 
         return is_updated
         
@@ -336,7 +341,7 @@ class LibUser:
             "value": "ASC"
         }
 
-        users = self.database.get(order=order)
+        users = Database("users").get(order=order)
 
         if len(users) == 0:
             return None

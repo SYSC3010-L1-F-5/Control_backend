@@ -40,7 +40,8 @@ TABLES = {
             "email": "text",
             "type": "text",
             "otp": "text",
-            "otp_time": "numeric"
+            "otp_time": "numeric",
+            "last_login": "numeric"
         },
         "verifications": [
             "username"
@@ -422,9 +423,9 @@ class Database:
         """
         flags = []
         flag = False
+        self.__select_table(table=self.table)
 
         if mode == "insert":
-            self.__select_table(table=self.table)
             for row in self.cursor:
                 for key in TABLES[self.table]["verifications"]:
                     if row[key] == data[key]:
@@ -437,7 +438,23 @@ class Database:
                     break
                 else:
                     flags = []
-    
+        elif mode == "update":
+            for row in self.cursor:
+                for key in TABLES[self.table]["verifications"]:
+                    if data["skip"] is False:
+                        if row[key] == data["value"] and key == data["name"]:
+                            flags.append(True)
+                        else:
+                            flags.append(False)
+                    else:
+                        flags.append(False)
+                
+                if all(flags):
+                    flag = True
+                    break
+                else:
+                    flags = []
+
         return flag
 
     def __delete_row(self, where):
@@ -500,7 +517,11 @@ class Database:
         if len(data) == 0:
             return False
         else:
-            self.cursor.execute("""UPDATE {} SET {}="{}" WHERE {}="{}"; """.format(self.table, set["name"], set["value"], where["name"], where["value"]))
+
+            if self.__verify_data("update", set) is False:
+                self.cursor.execute("""UPDATE {} SET {}="{}" WHERE {}="{}"; """.format(self.table, set["name"], set["value"], where["name"], where["value"]))
+            else:
+                return False
                 
         self.connection.commit()
 

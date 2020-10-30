@@ -93,10 +93,6 @@ class Device(Resource):
             if path.split("/")[1] == "devices":
 
                 devices = LIBDEVICE.get_all_devices()
-                if devices is not None:
-                    # hide device key
-                    for item in devices:
-                        item["key"] = ""
 
                 return devices, 200
             
@@ -270,7 +266,8 @@ class Device(Resource):
                 self.key = args["who"]
                 set = {
                     "name": "pulse",
-                    "value": int(time.time() * 1000)
+                    "value": int(time.time() * 1000),
+                    "skip": False
                 }
                 is_updated = LIBDEVICE.update_device(self.key, set)
 
@@ -302,7 +299,8 @@ class Device(Resource):
                                         self.ip = fields["ip"]
                                         set = {
                                             "name": "ip",
-                                            "value": self.ip
+                                            "value": self.ip,
+                                            "skip": False
                                         }
                                         LIBDEVICE.update_device(self.key, set)
                                     else:
@@ -314,7 +312,8 @@ class Device(Resource):
                                         self.port = fields["port"]
                                         set = {
                                             "name": "port",
-                                            "value": self.port
+                                            "value": self.port,
+                                            "skip": False
                                         }
                                         LIBDEVICE.update_device(self.key, set)
                                     else:
@@ -325,7 +324,8 @@ class Device(Resource):
                                         self.zone = fields["zone"]
                                         set = {
                                             "name": "zone",
-                                            "value": self.zone
+                                            "value": self.zone,
+                                            "skip": False
                                         }
                                         LIBDEVICE.update_device(self.key, set)
                                     else:
@@ -336,7 +336,8 @@ class Device(Resource):
                                         self.type = fields["type"]
                                         set = {
                                             "name": "type",
-                                            "value": self.type
+                                            "value": self.type,
+                                            "skip": False
                                         }
                                         LIBDEVICE.update_device(self.key, set)
                                     else:
@@ -347,7 +348,8 @@ class Device(Resource):
                                         self.name = fields["name"]
                                         set = {
                                             "name": "name",
-                                            "value": self.name
+                                            "value": self.name,
+                                            "skip": False
                                         }
                                         LIBDEVICE.update_device(self.key, set)
                                     else:
@@ -366,7 +368,8 @@ class Device(Resource):
                                 self.uuid = LIBDEVICE.uuid(uuid_field)
                                 set = {
                                         "name": "uuid",
-                                        "value": self.uuid
+                                        "value": self.uuid,
+                                        "skip": True
                                     }
                                 LIBDEVICE.update_device(self.key, set)
                             else:

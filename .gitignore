@@ -9,3 +9,4 @@ test.db
 *.test.*
 .pytest_cache
 .vscode
+classes_*.png
