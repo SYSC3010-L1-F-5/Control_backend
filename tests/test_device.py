@@ -360,9 +360,9 @@ def test_add(app, client):
         "X-OTP": admins["admin"]["otp"],
         "X-UUID": admins["admin"]["uuid"]
     })
-    assert res.status_code == 400
+    assert res.status_code == 500
     # test status_code
-    expected = "Bad Request: The browser (or proxy) sent a request that this server could not understand."
+    expected = "400 Bad Request: The browser (or proxy) sent a request that this server could not understand."
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
 
@@ -1155,7 +1155,10 @@ def test_device_event(app, client):
     })
     assert res.status_code == 200
 
-    res = client.put('/event/clear')
+    res = client.put('/event/clear', headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 200
 
 # should be the last test

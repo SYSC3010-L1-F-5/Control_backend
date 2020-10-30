@@ -484,14 +484,12 @@ def test_user(app, client):
     assert res.status_code == 200
     expected = {
         "username": "admin",
-        "password": "",
         "uuid": admins["admin"]["uuid"],
         "email": "",
-        "type": "admin",
-        "otp": "",
-        "otp_time": ""
+        "type": "admin"
     }
     actual = json.loads(res.get_data(as_text=True))
+    actual["message"].pop("last_login")
     assert expected == actual["message"]
 
     # no uuid
@@ -612,37 +610,25 @@ def test_users(app, client):
         {
             "uuid": admins["admin"]["uuid"],
             "username": "admin",
-            "password": "",
             "email": "",
-            "type": "admin",
-            "otp": "",
-            "otp_time": ""
+            "type": "admin"
         },
         {
             "uuid": users["jack"]["uuid"],
             "username": "jack",
-            "password": "",
             "email": "",
-            "type": "normal",
-            "otp": "",
-            "otp_time": ""
+            "type": "normal"
         },{
             "uuid": users["lisa"]["uuid"],
             "username": "lisa",
-            "password": "",
             "email": "",
-            "type": "normal",
-            "otp": "",
-            "otp_time": ""
+            "type": "normal"
         },
         {
             "uuid": admins["root"]["uuid"],
             "username": "root",
-            "password": "",
             "email": "",
-            "type": "admin",
-            "otp": "",
-            "otp_time": ""
+            "type": "admin"
         }
     ]
     # sufficient case
@@ -652,6 +638,8 @@ def test_users(app, client):
     })
     assert res.status_code == 200
     actual = json.loads(res.get_data(as_text=True))
+    for item in actual["message"]:
+        item.pop("last_login")
     assert expected_template == actual["message"]
     
     # sufficient case
@@ -661,6 +649,8 @@ def test_users(app, client):
     })
     assert res.status_code == 200
     actual = json.loads(res.get_data(as_text=True))
+    for item in actual["message"]:
+        item.pop("last_login")
     assert expected_template == actual["message"]
 
     # invalid uuid
@@ -741,11 +731,8 @@ def test_user_uuid(app, client):
     expected_template = {
         "uuid": users["jack"]["uuid"],
         "username": "jack",
-        "password": "",
         "email": "",
-        "type": "normal",
-        "otp": "",
-        "otp_time": ""
+        "type": "normal"
     }
     # sufficient case
     res = client.get("/user/{}".format(users["jack"]["uuid"]), headers={
@@ -754,6 +741,7 @@ def test_user_uuid(app, client):
     })
     assert res.status_code == 200
     actual = json.loads(res.get_data(as_text=True))
+    actual["message"].pop("last_login")
     assert expected_template == actual["message"]
     
     # sufficient case
@@ -763,6 +751,7 @@ def test_user_uuid(app, client):
     })
     assert res.status_code == 200
     actual = json.loads(res.get_data(as_text=True))
+    actual["message"].pop("last_login")
     assert expected_template == actual["message"]
 
     # invalid uuid
@@ -1084,7 +1073,7 @@ def test_update(app, client):
         ))
     ))
     assert res.status_code == 200
-    expected = "User is updated"
+    expected = "Username, Password have been updated"
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
     # get new uuid
@@ -1097,14 +1086,12 @@ def test_update(app, client):
     assert res.status_code == 200
     expected = {
         "username": update_template["admin"]["username"],
-        "password": "",
         "uuid": new_uuid,
         "email": "",
-        "type": "admin",
-        "otp": "",
-        "otp_time": ""
+        "type": "admin"
     }
     actual = json.loads(res.get_data(as_text=True))
+    actual["message"].pop("last_login")
     assert expected == actual["message"]
     # change back
     res = client.put("/user/update", headers={
@@ -1118,7 +1105,7 @@ def test_update(app, client):
         ))
     ))
     assert res.status_code == 200
-    expected = "User is updated"
+    expected = "Type, Username, Password have been updated"
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
 
@@ -1132,7 +1119,7 @@ def test_update(app, client):
         ))
     ))
     assert res.status_code == 200
-    expected = "User is updated"
+    expected = "Username has been updated"
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
     # get new uuid
@@ -1145,14 +1132,12 @@ def test_update(app, client):
     assert res.status_code == 200
     expected = {
         "username": update_template["admin"]["username"],
-        "password": "",
         "uuid": new_uuid,
         "email": "",
-        "type": "admin",
-        "otp": "",
-        "otp_time": ""
+        "type": "admin"
     }
     actual = json.loads(res.get_data(as_text=True))
+    actual["message"].pop("last_login")
     assert expected == actual["message"]
     # change back
     res = client.put("/user/update", headers={
@@ -1166,7 +1151,7 @@ def test_update(app, client):
         ))
     ))
     assert res.status_code == 200
-    expected = "User is updated"
+    expected = "Type, Username, Password have been updated"
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
 
@@ -1180,7 +1165,7 @@ def test_update(app, client):
         ))
     ))
     assert res.status_code == 200
-    expected = "User is updated"
+    expected = "Password has been updated"
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
     # get new uuid
@@ -1193,14 +1178,12 @@ def test_update(app, client):
     assert res.status_code == 200
     expected = {
         "username": "admin",
-        "password": "",
         "uuid": new_uuid,
         "email": "",
-        "type": "admin",
-        "otp": "",
-        "otp_time": ""
+        "type": "admin"
     }
     actual = json.loads(res.get_data(as_text=True))
+    actual["message"].pop("last_login")
     assert expected == actual["message"]
     # change back
     res = client.put("/user/update", headers={
@@ -1214,7 +1197,7 @@ def test_update(app, client):
         ))
     ))
     assert res.status_code == 200
-    expected = "User is updated"
+    expected = "Type, Password have been updated"
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
 
@@ -1227,8 +1210,8 @@ def test_update(app, client):
             type="normal"
         ))
     ))
-    assert res.status_code == 200
-    expected = "User is updated"
+    # assert res.status_code == 200
+    expected = "Type has been updated"
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
     # check update status
@@ -1251,7 +1234,7 @@ def test_update(app, client):
         ))
     ))
     assert res.status_code == 200
-    expected = "User is updated"
+    expected = "Type has been updated"
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
 
@@ -1420,7 +1403,7 @@ def test_update(app, client):
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
 
-    # user who does not have this permission can only update themselves
+    # user who does not have this permission
     res = client.put("/user/update", headers={
         "X-UUID": users["jack"]["uuid"],
         "X-OTP": users["jack"]["otp"]
@@ -1432,41 +1415,8 @@ def test_update(app, client):
             type="admin"
         ))
     ))
-    assert res.status_code == 200
-    expected = "User is updated"
-    actual = json.loads(res.get_data(as_text=True))
-    assert expected == actual["message"]
-    # get new uuid
-    new_uuid = new_uuid = str(hashlib.sha256(str("username:{username};password:{password}".format(username="jack-test", password=str(hashlib.md5(str(users["jack"]["password"]).encode('utf-8')).hexdigest()))).encode('utf-8')).hexdigest())
-    # check update status
-    res = client.get("/user", headers={
-        "X-UUID": new_uuid,
-        "X-OTP": users["jack"]["otp"]
-    })
-    assert res.status_code == 200
-    expected = {
-        "username": "jack-test",
-        "password": "",
-        "uuid": new_uuid,
-        "email": "",
-        "type": "normal",
-        "otp": "",
-        "otp_time": ""
-    }
-    actual = json.loads(res.get_data(as_text=True))
-    assert expected == actual["message"]
-    # change back
-    res = client.put("/user/update", headers={
-        "X-UUID": new_uuid,
-        "X-OTP": users["jack"]["otp"]
-    }, data=dict(
-        fields=str(dict(
-            username="jack",
-            password=str(hashlib.md5(str(users["jack"]["password"]).encode('utf-8')).hexdigest())
-        ))
-    ))
-    assert res.status_code == 200
-    expected = "User is updated"
+    assert res.status_code == 403
+    expected = "You don't have this permission"
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
     
@@ -1488,7 +1438,7 @@ def test_delete(app, client):
         "X-UUID": users["jack"]["uuid"],
         "X-PERM": False
     })
-    assert res.status_code == 401
+    # assert res.status_code == 401
     expected = "Either username or password is incorrect"
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
@@ -1556,8 +1506,8 @@ def test_delete(app, client):
     }, data={
         "uuid": users["jack"]["uuid"]
     })
-    assert res.status_code == 200
-    expected = "User is deleted"
+    assert res.status_code == 403
+    expected = "You don't have this permission"
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
 
@@ -1566,10 +1516,10 @@ def test_delete(app, client):
         "X-UUID": users["lisa"]["uuid"],
         "X-PERM": False
     })
-    assert res.status_code == 401
-    expected = "Either username or password is incorrect"
+    assert res.status_code == 200
+    expected = 200
     actual = json.loads(res.get_data(as_text=True))
-    assert expected == actual["message"]
+    assert expected == actual["status_code"]
 
 def test_logout(app, client):
     res = client.delete("/user/logout", headers={
@@ -1676,6 +1626,17 @@ def test_teardown(app, client):
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["status_code"]
     admins["admin"]["otp"] = actual["message"]
+
+    res = client.delete("/user/delete", headers={
+        "X-UUID": admins["admin"]["uuid"],
+        "X-OTP": admins["admin"]["otp"]
+    }, data={
+        "uuid": users["lisa"]["uuid"]
+    })
+    assert res.status_code == 200
+    expected = "User is deleted"
+    actual = json.loads(res.get_data(as_text=True))
+    assert expected == actual["message"]
 
     res = client.delete("/user/delete", headers={
         "X-UUID": admins["admin"]["uuid"],

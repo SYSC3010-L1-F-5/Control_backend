@@ -211,7 +211,10 @@ def test_route(app, client):
     res = client.put('/event/{}'.format(uuids["dummy"]))
     assert res.status_code == 500
 
-    res = client.put('/event/clear')
+    res = client.put('/event/clear', headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 200
 
     res = client.put('/event/update', headers={
@@ -430,9 +433,9 @@ def test_add(app, client):
         }""",
         when="test"
     ))
-    assert res.status_code == 400
+    assert res.status_code == 500
     # test status_code
-    expected = "Bad Request: The browser (or proxy) sent a request that this server could not understand."
+    expected = "400 Bad Request: The browser (or proxy) sent a request that this server could not understand."
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
 
@@ -656,8 +659,52 @@ def test_event_key(app, client):
     assert event == actual["message"]
 
 def test_event_clear(app, client):
-    res = client.put('/event/clear')
+    res = client.put('/event/clear', headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
     assert res.status_code == 200
+    expected = "OK"
+    actual = json.loads(res.get_data(as_text=True))
+    assert expected == actual["message"]
+
+    # invalid otp
+    res = client.put('/event/clear', headers={
+        "X-OTP": admins["dummy"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
+    assert res.status_code == 401
+    expected = "You are unauthorized"
+    actual = json.loads(res.get_data(as_text=True))
+    assert expected == actual["message"]
+
+    # invalid uuid
+    res = client.put('/event/clear', headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["dummy"]["uuid"]
+    })
+    assert res.status_code == 401
+    expected = "You are unauthorized"
+    actual = json.loads(res.get_data(as_text=True))
+    assert expected == actual["message"]
+
+    # missing otp
+    res = client.put('/event/clear', headers={
+        "X-UUID": admins["admin"]["uuid"]
+    })
+    assert res.status_code == 401
+    expected = "You are unauthorized"
+    actual = json.loads(res.get_data(as_text=True))
+    assert expected == actual["message"]
+
+    # missing uuid
+    res = client.put('/event/clear', headers={
+        "X-OTP": admins["admin"]["otp"]
+    })
+    assert res.status_code == 401
+    expected = "You are unauthorized"
+    actual = json.loads(res.get_data(as_text=True))
+    assert expected == actual["message"]
 
 def test_event_update(app, client):
     # empty field
