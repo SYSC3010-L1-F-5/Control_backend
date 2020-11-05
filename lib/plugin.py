@@ -7,9 +7,15 @@
 from lib.libconfig import LibConfig
 CONFIG = LibConfig().fetch()
 
+plugin_list = []
+
 if CONFIG["plugins"]["SenseHAT"] is True:
     from plugins.sensehat import SenseHAT
-    PLUGIN = SenseHAT(CONFIG)
+    plugin_list.append(SenseHAT(CONFIG))
+
+if CONFIG["plugins"]["alarm"] is True:
+    from plugins.alarm import Alarm
+    plugin_list.append(Alarm(CONFIG))
 
 class Plugin:
 
@@ -26,8 +32,8 @@ class Plugin:
                 event: an event that triggers the plugin
         
         """
-        
-        PLUGIN.on(event)
+        for plugin in plugin_list:
+            plugin.on(event)
 
     def off(self, event=None):
         """
@@ -39,5 +45,5 @@ class Plugin:
                 event: an event that triggers the plugin
         
         """
-
-        PLUGIN.off(event)
+        for plugin in plugin_list:
+            plugin.off(event)
