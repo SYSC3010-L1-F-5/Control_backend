@@ -2,9 +2,11 @@ FROM python:alpine
 
 ADD VERSION .
 
-WORKDIR /backend
-COPY requirement.txt ./
-RUN RUN pip install --no-cache-dir -r requirements.txt
+COPY requirements.txt /tmp
+WORKDIR /tmp
+RUN apk add --no-cache openssl-dev libffi-dev git make gcc g++ openldap-dev zlib-dev build-base jpeg-dev\
+    && pip install pyOpenSSL Pillow\
+    && pip install -r requirements.txt
 
 COPY . .
 
