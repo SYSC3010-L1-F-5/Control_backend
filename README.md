@@ -1,8 +1,57 @@
-# Backend of the Control Centre
+# The Central System
 
 Author: Haoyu Xu (haoyu.xu@carleton.ca)
 
-## Message Structure
+Current the User Interface is running under [http://10.1.0.1:5000](http://10.1.0.1:5000])
+
+## Run
+
+### Direct host
+
+Requirements:
+
+- Python 3.0+
+
+``` bash
+$ pip install -r requirements.txt
+$ flask run --no-debugger --host=0.0.0.0 --port=5000
+```
+
+The Central System will be up and running at [http://localhost:5000](http://localhost:5000]) and listen to [http://0.0.0.0:5000](http://0.0.0.0:5000)
+
+
+### Docker-compose
+
+``` yaml
+version: "3.8"
+services:
+  hss-backend:
+    build: ./hss/backend
+    container_name: hss_backend_container
+    environment:
+      - TZ=America/Toronto
+    volumes:
+      - ./hss/backend:/backend:rw
+    expose:
+      - "5000"
+    ports:
+      - "5000:5000"
+    restart: always
+```
+
+## Test
+
+Requirements:
+
+- PyTest
+
+``` bash
+$ python -m pytest --disable-warnings -vv
+```
+
+## Development
+
+### Message Structure
 
 ```` json
 }
@@ -18,51 +67,48 @@ Author: Haoyu Xu (haoyu.xu@carleton.ca)
 
 - time: Unix timestamp
 
-## Routes
+### Routes
 
-- `/`: currently for test only, working
+| URL | Medthod | Description | Requestion Formate | Response Formate |
+|---|---| --------- | ---| --- |
+| / | GET | currently for test only | N/A | string: "Hello world" |
+| /config | GET | response server configuration file, working | `X-UUID` and `X-OTP` in `Headers` with `admin` user permission | JSON/null: system config | 
+| /devices | GET | provides a list all registered devices | `X-UUID` and `X-OTP` in `Headers` | list/null: a list of devices |
+| /device/<key> | GET | get a specific data collecotr details | `X-UUID` and `X-OTP` in `Headers` | JSON/null: details of one device |
+| /device/add | POST | add a device to the system | `X-UUID` and `X-OTP` in `Headers` with `admin` user permission; `ip: device_ip`, `port: device_port`, `zone: device_zone`, `type: device_type`, `name: device_name` in `Form` field | string: device access `key` |
+| /device/delete | DELETE | delete a device from system | `X-UUID` and `X-OTP` in `Headers` with `admin` user permission; `key: device key` in `form` field | string: "Device is deleted"; "Device not found" |
+| /device/update | PUT | update a device | `X-UUID` and `X-OTP` in `Headers` with `admin` user permission; `which: device key`, `fields: '{"ip": device_ip, "port": device_port, "zone": device_zone, "type": device_type, "name"=device_name, is_enabled: (0/1)}'` in `Form` field | string: "Device is updated"; "Device is not updated" |
+| /pulse | PUT | device pulse | `who: device key` in `Form` field | string/int: "Device not found"; `1` or `0` if the device is found and `is_enabled` is set to true/false |
+| /events | GET | provides all events | `X-UUID` and `X-OTP` in `Headers` | list/null: a list of events |
+| /event/<uuid> | GET | get a specific event details |  `X-UUID` and `X-OTP` in `Headers` | JSON/null: details of an event | 
+| /event/add | POST | add a event | `who: device_access_key`, `what: '{"type": event_type, "data": event_detail}'`, `when: unix_timestamp` in `Form` field | string: uuid of the event |
+| /event/delete | DELETE | delete an event | `X-UUID` and `X-OTP` in `Headers` with `admin` user permission; `which: event_uuid` in `Form` field | string: "Event is deleted"; "Event not found" |
+| /event/update | PUT | update a event | `X-UUID` and `X-OTP` in `Headers` with `admin` user permission; `which: event_uuid`, `fields: '{"what": event_details, "hidden": (0/1)}'` in `Form` field | string: a new event uuid; "Event is not updated" |
+| /event/clear | PUT | clear plugin status | `X-UUID` and `X-OTP` in `Headers` with `admin` user permission | string: "OK" |
+| /user | GET | get details of a user | `X-UUID` and `X-OTP` in `Headers` | JSON: user details |
+| /users | GET | get a list of all users | `X-UUID` and `X-OTP` in `Headers` with `admin` user permission | list: a list of all users |
+| /user/<uuid> | GET | get details of a user | `X-UUID` and `X-OTP` in `Headers` with `admin` user permission | JSON: user details |
+| /user/login | POST | login a user | `X-UUID` and `X-PERM: true/false, remember the login status or not` in `Headers` | string: one-time user password |
+| /user/add | POST | add a new user | `X-UUID` and `X-OTP` in `Headers` with `admin` user permission; `username`, `password: md5 hashed`, `type: admin/regular, user permission type` in `Form` field | string: "User is added"; "User either exists or unexpected error happened" |
+| /user/logout | DELETE | logout a user | `X-UUID` and `X-OTP` in `Headers` | string: "You are logged out" |
+| /user/delete | DELETE | delete a user | `X-UUID` and `X-OTP` in `Headers` with `admin` user permission; `uuid: the uuid of the user to delete` in `Form` field | string: "User is deleted"; "User not found"|
+| /user/update | PUT | update a user | `X-UUID` and `X-OTP` in `Headers`; `fields: '{"uuid": user_uuid ("admin" permission is required if presented), "type": "admin"/"regular" ("admin" permission is required if presented), "username": username, "password": md5-hashed_password}'` in `Form` field | string: "<fields> has/have been updated"; "<fields> is/are not being updated" |
 
-- `/config`: `GET`, response server configuration file, working
+`X-UUID`: sha256-hashed `username:<username>;password:<md5-hashed password>`
+`X-OTP`: one-time user password
 
-- `/device/add`: `POST`, add a device to the system, details are sent by `application/x-www-form-urlencoded` using `ip=device_ip&port=device_port&zone=device_zone&type=device_type&name=device_name`. `message` will be the device access key. The key is required for any operations on device, working
-
-- `/device/delete`: `DELETE`, delete a device from system, details are sent by `application/x-www-form-urlencoded` using `key=device_access_key`. `message` will be string type, `Device is deleted` and `200` is successful, `Device not found` and `404` otherwise, working
-
-- `/device/update`: `PUT`, update a device, key is sent by `application/x-www-form-urlencoded` using `which=event_uuid&fields={"ip": device_ip, "port": device_port, "zone": device_zone, "type": device_type, "name"=device_name}`, in which `ip` is the `device ip`, `port` is the `device port`, `zone` is the `device zone`, `type` is the `device type`, and `name` is the `device name`; one or both of these parts must be presented. `message` will be `Device is updated` if the device is found and updated, otherwise `status_code` will be `401` and `message` will be `Device is not updated`, working
-
-- `/device/<key>`: `GET`, get a specific data collecotr details from system. `message` will be json type or `null`, `200` is successful, `404` otherwise, working
-
-- `/devices`: `GET`, provides all registered devices to the frontend, working
-
-- `/pulse`: `PUT`, device pulse, key is sent by `application/x-www-form-urlencoded` using `who=device_access_key`. `message` will be `Pulsed` and `200` if the device is registered, `Device not found` and `200` otherwise, pulse timestamp will be based on server time, working
-
-- `/events`: `GET`, provides all events to the frontend, working
-
-- `/event/add`: `POST`, add a event to the system, details are sent by `application/x-www-form-urlencoded` using `who=device_access_key&what=event_details&when=unix_timestamp`, in which `what` requires a json, when a new event is recieved, depends on its type, plugin may turn on. `message` will be a uuid to identify the event. The uuid is required to delete or update the event, working
-
-- `/event/delete`: `DELETE`, delete a event from system, details are sent by `application/x-www-form-urlencoded` using `which=event_uuid`. `message` will be string type, `Event is deleted` and `200` is successful, `Event not found` and `404` otherwise, working
-
-- `/event/update`: `PUT`, update a event, key is sent by `application/x-www-form-urlencoded` using `which=event_uuid&fields={"what": data, "hidden": (0/1)}`, in which `what` is the `data` part of the `event_details`, and `hidden` equals `1` is to hide the event, `0` otherwise, one or both of these two parts must be presented. `message` will be a new event uuid if the event is found and updated, otherwise `status_code` will be `401` and `message` will be `Event is not updated`, working
-
-- `/event/clear`: `PUT`, clear plugin status, working
-
-- `/event/<uuid>`: `GET`, get a specific event details from system. `message` will be json type or `null`, `200` is successful, `404` otherwise, working
-
-- `/user`: TBD
-
-
-## Plugins
+### Plugins
 
 May add localhost modules to the system. Currently, SenseHAT plugin is being developed.
 
-## Device Requirements
+### Device Requirements
 
 1. use `PUT` to send pulse data to `/pulse`, message structure: `who=device_access_key`
 2. use `PUT` to send events to `/event/add`, message structure: `who=device_access_key&what=event_details&when=unix_timestamp`
 
-### `what=event_details`
+#### `what=event_details`
 
-#### Camera
+##### Camera
 
 ``` json
 {
@@ -71,15 +117,15 @@ May add localhost modules to the system. Currently, SenseHAT plugin is being dev
 }
 ```
 
-##### type
+###### type
 
 - `motion_detected`: Detected motion in the camera frame
 
-##### data
+###### data
 
 The link to access the replay file
 
-#### Temperature, Humidity, Pressure, Motion Sensors
+##### Temperature, Humidity, Pressure, Motion Sensors
 
 ``` json
 {
@@ -88,237 +134,13 @@ The link to access the replay file
 }
 ```
 
-##### type
+###### type
 
 - `temperature`: for temperature sensors
 - `humidity`: for humidity sensors
 - `pressure`: for pressure sensors
 - `motion`: for motion sensors
 
-##### data
+###### data
 
 in string or numeric type 
-
-## Examples
-
-### `/device/add`
-
-Used by **frontend**, the key needs to be entered to data collector
-
-``` shell
-$ curl -X POST http://10.1.0.1:5000/device/add -d "ip=10.0.0.1&port=90&zone=kitchen&type=camera&name=test12"
-{
-    "message": "MDY2TIQx7HoYL8bHfjszcuhUI-AlGMZPWa8qnysvlGY",
-    "status_code": 200,
-    "time": 1602096032774
-}
-```
-
-### `/device/delete`
-
-Used by **frontend**, to delete a data collector
-
-``` shell
-$ curl -X DELETE http://10.1.0.1:5000/device/delete -d "key=MDY2TIQx7HoYL8bHfjszcuhUI-AlGMZPWa8qnysvlGY"
-{
-    "message": "Device is deleted",
-    "status_code": 200,
-    "time": 1602096436404
-}
-```
-
-### `/device/update`
-
-Used by **frontend**, update an existing data collector
-
-``` shell
-$ curl -X PUT http://10.1.0.1:5000/device/update -d 'key=Si88Eb9DhyMN93s49DGIWKKlOs6YebMqTX6lem8_Kgg&fields={"ip":"10.0.0.2","port":"90","zone":"bedroom","type":"temperature","name":"test1"}'
-{
-    "message": "Device is updated",
-    "status_code": 200,
-    "time": 1602096282155
-}
-```
-
-### `/device/<key>`
-
-Used by **frontend**, to get a specific data collecotr details
-
-``` shell
-$ curl -X GET http://10.1.0.1:5000/device/MDY2TIQx7HoYL8bHfjszcuhUI-AlGMZPWa8qnysvlGY
-{
-    "message": {
-        "device": {
-            "ip": "10.0.0.1",
-            "port": 90,
-            "zone": "kitchen",
-            "type": "camera",
-            "name": "test12",
-            "uuid": "aef0f39d-2aca-7520-7c89-fb3350075e74",
-            "key": "",
-            "pulse": 1602096165307
-        },
-        "events": [
-            {
-                "uuid": "f0a2a6b4-50d5-a045-58d4-8c321c7bdebe",
-                "device": "",
-                "time": 1501240210990,
-                "type": "motion_detected",
-                "details": "https://example.com/1",
-                "hidden": 1
-            }
-        ]
-    },
-    "status_code": 200,
-    "time": 1602096291861
-}
-```
-
-### `/pulse`
-
-Used by **data collector**, update it status to prevent unexpected offline
-
-``` shell
-$ curl -X PUT http://10.1.0.1:5000/pulse -d "who=MDY2TIQx7HoYL8bHfjszcuhUI-AlGMZPWa8qnysvlGY"
-{
-    "message": "Pulsed",
-    "status_code": 200,
-    "time": 1602096165548
-}
-```
-
-### `/event/add`
-
-Used by **data collector**, add an event to the system when a new event is triggered
-
-``` shell
-$ curl -X POST http://10.1.0.1:5000/event/add -d "who=MDY2TIQx7HoYL8bHfjszcuhUI-AlGMZPWa8qnysvlGY&what={\"type\":\"motion_detected\",\"data\":\"https://example.com/123\"}&when=1501240210990"
-{
-    "message": "6ef7798e-7b46-9193-1b01-7649c8e78104",
-    "status_code": 200,
-    "time": 1602096190335
-}
-```
-
-### `/event/update`
-
-Used by **data collector** or **frontend**, update an existing event
-
-``` shell
-$ curl -X PUT http://10.1.0.1:5000/event/update -d 'which=6ef7798e-7b46-9193-1b01-7649c8e78104&fields={"what": "https://example.com/1", "hidden": 1}'
-{
-    "message": "f0a2a6b4-50d5-a045-58d4-8c321c7bdebe",
-    "status_code": 200,
-    "time": 1602096282155
-}
-```
-
-### `/event/delete`
-
-Used by **data collector** or **frontend**, delete an existing event
-
-``` shell
-$ curl -X DELETE http://10.1.0.1:5000/event/delete -d "which=67a87a35-5508-4dba-9b40-d810a9af3992"
-{
-    "message": "Event is deleted",
-    "status_code": 200,
-    "time": 1602096332450
-}
-```
-
-### `/event/clear`
-
-Used by **frontend**, clear plugin status on the central system
-
-``` shell
-$ curl -X PUT http://10.1.0.1:5000/event/clear
-{
-    "message": "OK",
-    "status_code": 200,
-    "time": 1602096308789
-}
-```
-
-### `/event/<uuid>`
-
-Used by **frontend**, to get a specific event details
-
-``` shell
-$ curl -X GET http://10.1.0.1:5000/event/f0a2a6b4-50d5-a045-58d4-8c321c7bdebe
-{
-    "message": {
-        "uuid": "f0a2a6b4-50d5-a045-58d4-8c321c7bdebe",
-        "device": {
-            "ip": "10.0.0.1",
-            "port": 90,
-            "zone": "kitchen",
-            "type": "camera",
-            "name": "test12",
-            "uuid": "aef0f39d-2aca-7520-7c89-fb3350075e74",
-            "key": "",
-            "pulse": 1602096165307
-        },
-        "time": 1501240210990,
-        "type": "motion_detected",
-        "details": "https://example.com/1",
-        "hidden": 1
-    },
-    "status_code": 200,
-    "time": 1602096366890
-}
-```
-
-### `/events`
-
-Used by **frontend**, receive a list of events 
-
-``` shell
-$ curl -X GET http://10.1.0.1:5000/events
-{
-    "message": [
-        {
-            "uuid": "f0a2a6b4-50d5-a045-58d4-8c321c7bdebe",
-            "device": {
-                "ip": "10.0.0.1",
-                "port": 90,
-                "zone": "kitchen",
-                "type": "camera",
-                "name": "test12",
-                "uuid": "aef0f39d-2aca-7520-7c89-fb3350075e74",
-                "key": "",
-                "pulse": 1602096165307
-            },
-            "time": 1501240210990,
-            "type": "motion_detected",
-            "details": "https://example.com/1",
-            "hidden": 1
-        }
-    ],
-    "status_code": 200,
-    "time": 1602096377209
-}
-```
-
-### `/devices`
-
-Used by **frontend**, receive a list of data collectors
-
-``` shell
-$ curl -X GET http://10.1.0.1:5000/devices
-{
-    "message": [
-        {
-            "ip": "10.0.0.1",
-            "port": 90,
-            "zone": "kitchen",
-            "type": "camera",
-            "name": "test12",
-            "uuid": "aef0f39d-2aca-7520-7c89-fb3350075e74",
-            "key": "",
-            "pulse": 1602096165307
-        }
-    ],
-    "status_code": 200,
-    "time": 1602096390337
-}
-```
