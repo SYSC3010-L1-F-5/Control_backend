@@ -121,7 +121,7 @@ class Event(Resource):
                 if details is not None:
                     details["device"] = LIBDEVICE.details(details["device"])
                     # Hide the key
-                    details["device"]["key"] = ""
+                    details["device"].pop("key")
                     return details, 200
                 else:
                     return "Event not found", 404
@@ -183,21 +183,24 @@ class Event(Resource):
             if is_exists is False:
                 return "Who are you?", 404
             else:
-                event = {
-                    "device": self.who,
-                    "type": self.what["type"],
-                    "details": str(self.what["data"]),
-                    "time": self.when
-                }
+                if LIBDEVICE.is_enabled(self.who) is True:
+                    event = {
+                        "device": self.who,
+                        "type": self.what["type"],
+                        "details": str(self.what["data"]),
+                        "time": self.when
+                    }
 
-                self.uuid = LIBEVENT.add_event(event)
+                    self.uuid = LIBEVENT.add_event(event)
 
-            if self.uuid is not None:
-                PLUGIN.on(event=event)
-                EMAIL.send(event=event)
-                return self.uuid, 200
-            else:
-                return "Duplicated event", 403
+                    if self.uuid is not None:
+                        PLUGIN.on(event=event)
+                        EMAIL.send(event=event)
+                        return self.uuid, 200
+                    else:
+                        return "Duplicated event", 403
+                else:
+                    return "You are not allowed to do so at this time", 403
         else:
             return "The request has unfulfilled fields", 400
 

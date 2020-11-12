@@ -24,6 +24,7 @@ keys = {
     "zone": "",
     "type": "",
     "name": "",
+    "is_enabled": "",
     "dummy": "Ee_M7mT9wuoeOn8I1GYtC6NQ5EgXyKLZ6tGbyiTA_b0"
 }
 
@@ -231,7 +232,8 @@ def test_add(app, client):
         port=90,
         zone="kitchen",
         type="camera",
-        name="test"
+        name="test",
+        is_enabled=1
     ), headers={
         "X-OTP": admins["admin"]["otp"],
         "X-UUID": admins["admin"]["uuid"]
@@ -249,7 +251,25 @@ def test_add(app, client):
         port=90,
         zone="kitchen",
         type="camera",
-        name="test"
+        name="test",
+        is_enabled=1
+    ), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
+    assert res.status_code == 403
+    # test message
+    expected = "Device exists"
+    assert expected == json.loads(res.get_data(as_text=True))["message"]
+
+    # duplicated device
+    res = client.post('/device/add', data=dict(
+        ip="10.0.0.1",
+        port=90,
+        zone="kitchen",
+        type="camera",
+        name="test",
+        is_enabled=0
     ), headers={
         "X-OTP": admins["admin"]["otp"],
         "X-UUID": admins["admin"]["uuid"]
@@ -265,7 +285,8 @@ def test_add(app, client):
         port=90,
         zone="kitchen",
         type="camera",
-        name="test"
+        name="test",
+        is_enabled=1
     ), headers={
         "X-OTP": admins["admin"]["otp"],
         "X-UUID": admins["admin"]["uuid"]
@@ -283,7 +304,8 @@ def test_add(app, client):
         port=91,
         zone="kitchen",
         type="camera",
-        name="test"
+        name="test",
+        is_enabled=1
     ), headers={
         "X-OTP": admins["admin"]["otp"],
         "X-UUID": admins["admin"]["uuid"]
@@ -301,7 +323,8 @@ def test_add(app, client):
         port=90,
         zone="bedroom",
         type="camera",
-        name="test"
+        name="test",
+        is_enabled=1
     ), headers={
         "X-OTP": admins["admin"]["otp"],
         "X-UUID": admins["admin"]["uuid"]
@@ -319,7 +342,8 @@ def test_add(app, client):
         port=90,
         zone="kitchen",
         type="temperature",
-        name="test"
+        name="test",
+        is_enabled=1
     ), headers={
         "X-OTP": admins["admin"]["otp"],
         "X-UUID": admins["admin"]["uuid"]
@@ -337,7 +361,8 @@ def test_add(app, client):
         port=90,
         zone="kitchen",
         type="camera",
-        name="test1"
+        name="test1",
+        is_enabled=1
     ), headers={
         "X-OTP": admins["admin"]["otp"],
         "X-UUID": admins["admin"]["uuid"]
@@ -349,13 +374,33 @@ def test_add(app, client):
     assert expected == actual["status_code"]
     keys["name"] = actual["message"]
 
+    # new device with disabled status
+    res = client.post('/device/add', data=dict(
+        ip="10.0.0.1",
+        port=90,
+        zone="kitchen",
+        type="camera",
+        name="test2",
+        is_enabled=0
+    ), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
+    assert res.status_code == 200
+    # test status_code
+    expected = 200
+    actual = json.loads(res.get_data(as_text=True))
+    assert expected == actual["status_code"]
+    keys["is_enabled"] = actual["message"]
+
     # test non-int port
     res = client.post('/device/add', data=dict(
         ip="10.0.0.1",
         port="test",
         zone="kitchen",
         type="camera",
-        name="test1"
+        name="test1",
+        is_enabled=1
     ), headers={
         "X-OTP": admins["admin"]["otp"],
         "X-UUID": admins["admin"]["uuid"]
@@ -463,9 +508,10 @@ def test_device_key(app, client):
     uuid_field = ";".join("{key}:{value}".format(key=key, value=value) for key, value in device.items())
     device_uuid = str(uuid.UUID(hashlib.md5(str(uuid_field).encode('utf-8')).hexdigest()))
     device["uuid"] = device_uuid
-    device["key"] = ""
     device["pulse"] = -1
+    device["is_enabled"] = 1
     actual = json.loads(res.get_data(as_text=True))
+    actual["message"]["device"].pop("key")
     assert device == actual["message"]["device"]
 
     # device with different ip
@@ -485,9 +531,10 @@ def test_device_key(app, client):
     uuid_field = ";".join("{key}:{value}".format(key=key, value=value) for key, value in device.items())
     device_uuid = str(uuid.UUID(hashlib.md5(str(uuid_field).encode('utf-8')).hexdigest()))
     device["uuid"] = device_uuid
-    device["key"] = ""
     device["pulse"] = -1
+    device["is_enabled"] = 1
     actual = json.loads(res.get_data(as_text=True))
+    actual["message"]["device"].pop("key")
     assert device == actual["message"]["device"]
 
     # device with different port
@@ -507,9 +554,10 @@ def test_device_key(app, client):
     uuid_field = ";".join("{key}:{value}".format(key=key, value=value) for key, value in device.items())
     device_uuid = str(uuid.UUID(hashlib.md5(str(uuid_field).encode('utf-8')).hexdigest()))
     device["uuid"] = device_uuid
-    device["key"] = ""
     device["pulse"] = -1
+    device["is_enabled"] = 1
     actual = json.loads(res.get_data(as_text=True))
+    actual["message"]["device"].pop("key")
     assert device == actual["message"]["device"]
 
     # device with different zone
@@ -529,9 +577,10 @@ def test_device_key(app, client):
     uuid_field = ";".join("{key}:{value}".format(key=key, value=value) for key, value in device.items())
     device_uuid = str(uuid.UUID(hashlib.md5(str(uuid_field).encode('utf-8')).hexdigest()))
     device["uuid"] = device_uuid
-    device["key"] = ""
     device["pulse"] = -1
+    device["is_enabled"] = 1
     actual = json.loads(res.get_data(as_text=True))
+    actual["message"]["device"].pop("key")
     assert device == actual["message"]["device"]
 
     # device with different type
@@ -551,9 +600,10 @@ def test_device_key(app, client):
     uuid_field = ";".join("{key}:{value}".format(key=key, value=value) for key, value in device.items())
     device_uuid = str(uuid.UUID(hashlib.md5(str(uuid_field).encode('utf-8')).hexdigest()))
     device["uuid"] = device_uuid
-    device["key"] = ""
     device["pulse"] = -1
+    device["is_enabled"] = 1
     actual = json.loads(res.get_data(as_text=True))
+    actual["message"]["device"].pop("key")
     assert device == actual["message"]["device"]
 
     # device with different name
@@ -573,9 +623,33 @@ def test_device_key(app, client):
     uuid_field = ";".join("{key}:{value}".format(key=key, value=value) for key, value in device.items())
     device_uuid = str(uuid.UUID(hashlib.md5(str(uuid_field).encode('utf-8')).hexdigest()))
     device["uuid"] = device_uuid
-    device["key"] = ""
     device["pulse"] = -1
+    device["is_enabled"] = 1
     actual = json.loads(res.get_data(as_text=True))
+    actual["message"]["device"].pop("key")
+    assert device == actual["message"]["device"]
+
+    # device with disabled status
+    res = client.get('/device/{}'.format(keys["is_enabled"]), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
+    assert res.status_code == 200
+    # test message
+    device = dict(
+        ip="10.0.0.1",
+        port=90,
+        zone="kitchen",
+        type="camera",
+        name="test2"
+    )
+    uuid_field = ";".join("{key}:{value}".format(key=key, value=value) for key, value in device.items())
+    device_uuid = str(uuid.UUID(hashlib.md5(str(uuid_field).encode('utf-8')).hexdigest()))
+    device["uuid"] = device_uuid
+    device["pulse"] = -1
+    device["is_enabled"] = 0
+    actual = json.loads(res.get_data(as_text=True))
+    actual["message"]["device"].pop("key")
     assert device == actual["message"]["device"]
 
     # non-exist device
@@ -670,11 +744,12 @@ def test_device_update(app, client):
 
     # sufficient full case
     fields = dict(
-        ip="10.0.0.2",
-        port=91,
-        zone="bedroom",
-        type="temperature",
-        name="test1"
+        ip="10.0.0.3",
+        port=92,
+        zone="door",
+        type="humidity",
+        name="test123",
+        is_enabled=0
     )
     res = client.put('/device/update', data=dict(
         key=keys["test"],
@@ -685,7 +760,7 @@ def test_device_update(app, client):
     })
     assert res.status_code == 200
     # test message
-    expected = "Device is updated"
+    expected = "IP, Port, Zone, Type, Name, Status have been updated"
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
     res = client.get('/device/{}'.format(keys["test"]), headers={
@@ -694,13 +769,15 @@ def test_device_update(app, client):
     })
     assert res.status_code == 200
     # test message
+    fields.pop("is_enabled")
     device = fields
     uuid_field = ";".join("{key}:{value}".format(key=key, value=value) for key, value in device.items())
     device_uuid = str(uuid.UUID(hashlib.md5(str(uuid_field).encode('utf-8')).hexdigest()))
     device["uuid"] = device_uuid
-    device["key"] = ""
     device["pulse"] = -1
+    device["is_enabled"] = 0
     actual = json.loads(res.get_data(as_text=True))
+    actual["message"]["device"].pop("key")
     assert device == actual["message"]["device"]
 
     # sufficient ip case
@@ -716,7 +793,7 @@ def test_device_update(app, client):
     })
     assert res.status_code == 200
     # test message
-    expected = "Device is updated"
+    expected = "IP has been updated"
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
     res = client.get('/device/{}'.format(keys["test"]), headers={
@@ -727,17 +804,18 @@ def test_device_update(app, client):
     # test message
     device = dict(
         ip="10.0.0.1",
-        port=91,
-        zone="bedroom",
-        type="temperature",
-        name="test1"
+        port=92,
+        zone="door",
+        type="humidity",
+        name="test123"
     )
     uuid_field = ";".join("{key}:{value}".format(key=key, value=value) for key, value in device.items())
     device_uuid = str(uuid.UUID(hashlib.md5(str(uuid_field).encode('utf-8')).hexdigest()))
     device["uuid"] = device_uuid
-    device["key"] = ""
     device["pulse"] = -1
+    device["is_enabled"] = 0
     actual = json.loads(res.get_data(as_text=True))
+    actual["message"]["device"].pop("key")
     assert device == actual["message"]["device"]
 
     # sufficient port case
@@ -753,7 +831,7 @@ def test_device_update(app, client):
     })
     assert res.status_code == 200
     # test message
-    expected = "Device is updated"
+    expected = "Port has been updated"
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
     res = client.get('/device/{}'.format(keys["test"]), headers={
@@ -765,16 +843,17 @@ def test_device_update(app, client):
     device = dict(
         ip="10.0.0.1",
         port=90,
-        zone="bedroom",
-        type="temperature",
-        name="test1"
+        zone="door",
+        type="humidity",
+        name="test123"
     )
     uuid_field = ";".join("{key}:{value}".format(key=key, value=value) for key, value in device.items())
     device_uuid = str(uuid.UUID(hashlib.md5(str(uuid_field).encode('utf-8')).hexdigest()))
     device["uuid"] = device_uuid
-    device["key"] = ""
     device["pulse"] = -1
+    device["is_enabled"] = 0
     actual = json.loads(res.get_data(as_text=True))
+    actual["message"]["device"].pop("key")
     assert device == actual["message"]["device"]
 
     # sufficient zone case
@@ -790,7 +869,7 @@ def test_device_update(app, client):
     })
     assert res.status_code == 200
     # test message
-    expected = "Device is updated"
+    expected = "Zone has been updated"
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
     res = client.get('/device/{}'.format(keys["test"]), headers={
@@ -803,15 +882,16 @@ def test_device_update(app, client):
         ip="10.0.0.1",
         port=90,
         zone="kitchen",
-        type="temperature",
-        name="test1"
+        type="humidity",
+        name="test123"
     )
     uuid_field = ";".join("{key}:{value}".format(key=key, value=value) for key, value in device.items())
     device_uuid = str(uuid.UUID(hashlib.md5(str(uuid_field).encode('utf-8')).hexdigest()))
     device["uuid"] = device_uuid
-    device["key"] = ""
     device["pulse"] = -1
+    device["is_enabled"] = 0
     actual = json.loads(res.get_data(as_text=True))
+    actual["message"]["device"].pop("key")
     assert device == actual["message"]["device"]
 
     # sufficient type case
@@ -827,7 +907,7 @@ def test_device_update(app, client):
     })
     assert res.status_code == 200
     # test message
-    expected = "Device is updated"
+    expected = "Type has been updated"
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
     res = client.get('/device/{}'.format(keys["test"]), headers={
@@ -836,19 +916,20 @@ def test_device_update(app, client):
     })
     assert res.status_code == 200
     # test message
-    device = device = dict(
+    device = dict(
         ip="10.0.0.1",
         port=90,
         zone="kitchen",
         type="camera",
-        name="test1"
+        name="test123"
     )
     uuid_field = ";".join("{key}:{value}".format(key=key, value=value) for key, value in device.items())
     device_uuid = str(uuid.UUID(hashlib.md5(str(uuid_field).encode('utf-8')).hexdigest()))
     device["uuid"] = device_uuid
-    device["key"] = ""
     device["pulse"] = -1
+    device["is_enabled"] = 0
     actual = json.loads(res.get_data(as_text=True))
+    actual["message"]["device"].pop("key")
     assert device == actual["message"]["device"]
 
     # sufficient name case
@@ -864,7 +945,46 @@ def test_device_update(app, client):
     })
     assert res.status_code == 200
     # test message
-    expected = "Device is updated"
+    expected = "Name has been updated"
+    actual = json.loads(res.get_data(as_text=True))
+    assert expected == actual["message"]
+    res = client.get('/device/{}'.format(keys["test"]), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
+    assert res.status_code == 200
+    # test message
+    device = dict(
+        ip="10.0.0.1",
+        port=90,
+        zone="kitchen",
+        type="camera",
+        name="test"
+    )
+    uuid_field = ";".join("{key}:{value}".format(key=key, value=value) for key, value in device.items())
+    device_uuid = str(uuid.UUID(hashlib.md5(str(uuid_field).encode('utf-8')).hexdigest()))
+    device["uuid"] = device_uuid
+    device["pulse"] = -1
+    device["is_enabled"] = 1
+    device["is_enabled"] = 0
+    actual = json.loads(res.get_data(as_text=True))
+    actual["message"]["device"].pop("key")
+    assert device == actual["message"]["device"]
+
+    # switch to enabled
+    fields = dict(
+        is_enabled=1
+    )
+    res = client.put('/device/update', data=dict(
+        key=keys["test"],
+        fields=str(json.dumps(fields))
+    ), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
+    assert res.status_code == 200
+    # test message
+    expected = "Status has been updated"
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
     res = client.get('/device/{}'.format(keys["test"]), headers={
@@ -883,9 +1003,10 @@ def test_device_update(app, client):
     uuid_field = ";".join("{key}:{value}".format(key=key, value=value) for key, value in device.items())
     device_uuid = str(uuid.UUID(hashlib.md5(str(uuid_field).encode('utf-8')).hexdigest()))
     device["uuid"] = device_uuid
-    device["key"] = ""
     device["pulse"] = -1
+    device["is_enabled"] = 1
     actual = json.loads(res.get_data(as_text=True))
+    actual["message"]["device"].pop("key")
     assert device == actual["message"]["device"]
 
     fields = dict(
@@ -1017,7 +1138,7 @@ def test_pulse(app, client):
     ))
     assert res.status_code == 200
     # test message
-    expected = "Pulsed"
+    expected = True
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
 
@@ -1027,7 +1148,7 @@ def test_pulse(app, client):
     ))
     assert res.status_code == 200
     # test message
-    expected = "Pulsed"
+    expected = True
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
 
@@ -1037,7 +1158,7 @@ def test_pulse(app, client):
     ))
     assert res.status_code == 200
     # test message
-    expected = "Pulsed"
+    expected = True
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
 
@@ -1047,7 +1168,7 @@ def test_pulse(app, client):
     ))
     assert res.status_code == 200
     # test message
-    expected = "Pulsed"
+    expected = True
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
 
@@ -1057,7 +1178,7 @@ def test_pulse(app, client):
     ))
     assert res.status_code == 200
     # test message
-    expected = "Pulsed"
+    expected = True
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
 
@@ -1067,7 +1188,17 @@ def test_pulse(app, client):
     ))
     assert res.status_code == 200
     # test message
-    expected = "Pulsed"
+    expected = True
+    actual = json.loads(res.get_data(as_text=True))
+    assert expected == actual["message"]
+
+    # device with disabled status
+    res = client.put('/pulse', data=dict(
+        who=keys["is_enabled"]
+    ))
+    assert res.status_code == 200
+    # test message
+    expected = False
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
 
@@ -1116,12 +1247,11 @@ def test_device_event(app, client):
         "X-OTP": admins["admin"]["otp"],
         "X-UUID": admins["admin"]["uuid"]
     })
-    assert res.status_code == 200
+    # assert res.status_code == 200
     # test message
     test_events = [
         dict(
             uuid=events[0]["uuid"],
-            device="",
             time=events[0]["when"],
             type=json.loads(events[0]["what"])["type"],
             details=json.loads(events[0]["what"])["data"],
@@ -1129,7 +1259,6 @@ def test_device_event(app, client):
         ),
         dict(
             uuid=events[1]["uuid"],
-            device="",
             time=events[1]["when"],
             type=json.loads(events[1]["what"])["type"],
             details=str(json.loads(events[1]["what"])["data"]),
@@ -1227,6 +1356,18 @@ def test_delete(app, client):
 
     res = client.delete('/device/delete', data=dict(
         key=keys["name"]
+    ), headers={
+        "X-OTP": admins["admin"]["otp"],
+        "X-UUID": admins["admin"]["uuid"]
+    })
+    assert res.status_code == 200
+    # test status_code
+    expected = "Device is deleted"
+    actual = json.loads(res.get_data(as_text=True))
+    assert expected == actual["message"]
+
+    res = client.delete('/device/delete', data=dict(
+        key=keys["is_enabled"]
     ), headers={
         "X-OTP": admins["admin"]["otp"],
         "X-UUID": admins["admin"]["uuid"]

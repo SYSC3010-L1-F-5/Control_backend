@@ -75,7 +75,7 @@ $ python -m pytest --disable-warnings -vv
 | /config | GET | response server configuration file, working | `X-UUID` and `X-OTP` in `Headers` with `admin` user permission | JSON/null: system config | 
 | /devices | GET | provides a list all registered devices | `X-UUID` and `X-OTP` in `Headers` | list/null: a list of devices |
 | /device/<key> | GET | get a specific data collecotr details | `X-UUID` and `X-OTP` in `Headers` | JSON/null: details of one device |
-| /device/add | POST | add a device to the system | `X-UUID` and `X-OTP` in `Headers` with `admin` user permission; `ip: device_ip`, `port: device_port`, `zone: device_zone`, `type: device_type`, `name: device_name` in `Form` field | string: device access `key` |
+| /device/add | POST | add a device to the system | `X-UUID` and `X-OTP` in `Headers` with `admin` user permission; `ip: device_ip`, `port: device_port`, `zone: device_zone`, `type: device_type`, `name: device_name`, `is_enabled: 0/1, enable or not` in `Form` field | string: device access `key` |
 | /device/delete | DELETE | delete a device from system | `X-UUID` and `X-OTP` in `Headers` with `admin` user permission; `key: device key` in `form` field | string: "Device is deleted"; "Device not found" |
 | /device/update | PUT | update a device | `X-UUID` and `X-OTP` in `Headers` with `admin` user permission; `which: device key`, `fields: '{"ip": device_ip, "port": device_port, "zone": device_zone, "type": device_type, "name"=device_name, is_enabled: (0/1)}'` in `Form` field | string: "Device is updated"; "Device is not updated" |
 | /pulse | PUT | device pulse | `who: device key` in `Form` field | string/int: "Device not found"; `1` or `0` if the device is found and `is_enabled` is set to true/false |
@@ -83,7 +83,7 @@ $ python -m pytest --disable-warnings -vv
 | /event/<uuid> | GET | get a specific event details |  `X-UUID` and `X-OTP` in `Headers` | JSON/null: details of an event | 
 | /event/add | POST | add a event | `who: device_access_key`, `what: '{"type": event_type, "data": event_detail}'`, `when: unix_timestamp` in `Form` field | string: uuid of the event |
 | /event/delete | DELETE | delete an event | `X-UUID` and `X-OTP` in `Headers` with `admin` user permission; `which: event_uuid` in `Form` field | string: "Event is deleted"; "Event not found" |
-| /event/update | PUT | update a event | `X-UUID` and `X-OTP` in `Headers` with `admin` user permission; `which: event_uuid`, `fields: '{"what": event_details, "hidden": (0/1)}'` in `Form` field | string: a new event uuid; "Event is not updated" |
+| /event/update | PUT | update a event | `X-UUID` and `X-OTP` in `Headers` with `admin` user permission; `which: event_uuid`, `fields: '{"what": event_details, "hidden": 0/1, hidden or not}'` in `Form` field | string: a new event uuid; "Event is not updated" |
 | /event/clear | PUT | clear plugin status | `X-UUID` and `X-OTP` in `Headers` with `admin` user permission | string: "OK" |
 | /user | GET | get details of a user | `X-UUID` and `X-OTP` in `Headers` | JSON: user details |
 | /users | GET | get a list of all users | `X-UUID` and `X-OTP` in `Headers` with `admin` user permission | list: a list of all users |

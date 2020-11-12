@@ -42,6 +42,7 @@ class Device(Resource):
             self.name: device name
             self.key: access key
             self.uuid: device uuid
+            self.is_enabled: the device is enabled by default
             self.auth_uuid: use for authentication
             self.auth_otp: use for authentication
 
@@ -53,6 +54,7 @@ class Device(Resource):
         self.name = None
         self.key = None
         self.uuid = None
+        self.is_enabled = 1
         self.auth_uuid = None
         self.auth_otp = None
 
@@ -104,8 +106,8 @@ class Device(Resource):
                     if events is not None:
                         # Hide the device key
                         for item in events:
-                            item["device"] = ""
-                    details["key"] = ""
+                            item.pop("device")
+
                     message = dict(
                         device = details,
                         events = events
@@ -149,6 +151,7 @@ class Device(Resource):
         PARASER.add_argument('zone', type=str, help='Device Zone')
         PARASER.add_argument('type', type=str, help='Device Type')
         PARASER.add_argument('name', type=str, help='Device Name')
+        PARASER.add_argument('is_enabled', type=int, help='Device Status')
         PARASER.add_argument('X-UUID', type=str, location='headers', help='User UUID')
         PARASER.add_argument('X-OTP', type=str, location='headers', help='User OTP')
         args = PARASER.parse_args(strict=True)
@@ -157,6 +160,7 @@ class Device(Resource):
         self.zone = args["zone"]
         self.type = args["type"]
         self.name = args["name"]
+        self.is_enabled = args["is_enabled"]
         self.auth_uuid = args["X-UUID"]
         self.auth_otp = args["X-OTP"]
 
@@ -169,7 +173,8 @@ class Device(Resource):
                         "port": self.port,
                         "zone": self.zone,
                         "type": self.type,
-                        "name": self.name
+                        "name": self.name,
+                        "is_enabled": self.is_enabled
                     }
 
                     self.key = LIBDEVICE.add_device(device)
@@ -272,7 +277,7 @@ class Device(Resource):
                 is_updated = LIBDEVICE.update_device(self.key, set)
 
                 if is_updated is True:
-                    return "Pulsed", 200
+                    return LIBDEVICE.is_enabled(self.key), 200
                 else:
                     return "Device not found", 404
             else:
@@ -294,64 +299,122 @@ class Device(Resource):
                         if is_exists is True:
                             if args["fields"] is not None and args["fields"] != "":
                                 fields = json.loads(args["fields"].replace("'", '"'))
+                                updated_fields = []
+                                failed_to_update_fields = []
+                                details = LIBDEVICE.details(self.key)
+                                device = {
+                                    "ip": details["ip"],
+                                    "port": details["port"],
+                                    "zone": details["zone"],
+                                    "type": details["type"],
+                                    "name": details["name"]
+                                }
+
                                 if "ip" in fields:
                                     if self.__is_empty_or_none(fields["ip"]) is False:
-                                        self.ip = fields["ip"]
-                                        set = {
-                                            "name": "ip",
-                                            "value": self.ip,
-                                            "skip": False
-                                        }
-                                        LIBDEVICE.update_device(self.key, set)
+                                        temp = device
+                                        temp["ip"] = fields["ip"]
+                                        uuid_field = ";".join("{key}:{value}".format(key=key, value=value) for key, value in temp.items())
+                                        if LIBDEVICE.is_exists_uuid(LIBDEVICE.uuid(uuid_field)) is False:
+                                            self.ip = fields["ip"]
+                                            set = {
+                                                "name": "ip",
+                                                "value": self.ip,
+                                                "skip": False
+                                            }
+                                            LIBDEVICE.update_device(self.key, set)
+                                            updated_fields.append("IP")
+                                        else:
+                                            failed_to_update_fields.append("IP")
                                     else:
                                         return "The request has unfulfilled fields", 401
 
                                 if "port" in fields:
                                     if self.__is_empty_or_none(fields["port"]) is False:
-                                        
-                                        self.port = fields["port"]
-                                        set = {
-                                            "name": "port",
-                                            "value": self.port,
-                                            "skip": False
-                                        }
-                                        LIBDEVICE.update_device(self.key, set)
+                                        temp = device
+                                        temp["port"] = fields["port"]
+                                        uuid_field = ";".join("{key}:{value}".format(key=key, value=value) for key, value in temp.items())
+                                        if LIBDEVICE.is_exists_uuid(LIBDEVICE.uuid(uuid_field)) is False:
+                                            self.port = fields["port"]
+                                            set = {
+                                                "name": "port",
+                                                "value": self.port,
+                                                "skip": False
+                                            }
+                                            LIBDEVICE.update_device(self.key, set)
+                                            updated_fields.append("Port")
+                                        else:
+                                            failed_to_update_fields.append("Port")
                                     else:
                                         return "The request has unfulfilled fields", 401
                         
                                 if "zone" in fields:
                                     if self.__is_empty_or_none(fields["zone"]) is False:
-                                        self.zone = fields["zone"]
-                                        set = {
-                                            "name": "zone",
-                                            "value": self.zone,
-                                            "skip": False
-                                        }
-                                        LIBDEVICE.update_device(self.key, set)
+                                        temp = device
+                                        temp["zone"] = fields["zone"]
+                                        uuid_field = ";".join("{key}:{value}".format(key=key, value=value) for key, value in temp.items())
+                                        if LIBDEVICE.is_exists_uuid(LIBDEVICE.uuid(uuid_field)) is False:
+                                            self.zone = fields["zone"]
+                                            set = {
+                                                "name": "zone",
+                                                "value": self.zone,
+                                                "skip": False
+                                            }
+                                            LIBDEVICE.update_device(self.key, set)
+                                            updated_fields.append("Zone")
+                                        else:
+                                            failed_to_update_fields.append("Zone")
                                     else:
                                         return "The request has unfulfilled fields", 401
 
                                 if "type" in fields:
                                     if self.__is_empty_or_none(fields["type"]) is False:
-                                        self.type = fields["type"]
-                                        set = {
-                                            "name": "type",
-                                            "value": self.type,
-                                            "skip": False
-                                        }
-                                        LIBDEVICE.update_device(self.key, set)
+                                        temp = device
+                                        temp["type"] = fields["type"]
+                                        uuid_field = ";".join("{key}:{value}".format(key=key, value=value) for key, value in temp.items())
+                                        if LIBDEVICE.is_exists_uuid(LIBDEVICE.uuid(uuid_field)) is False:
+                                            self.type = fields["type"]
+                                            set = {
+                                                "name": "type",
+                                                "value": self.type,
+                                                "skip": False
+                                            }
+                                            LIBDEVICE.update_device(self.key, set)
+                                            updated_fields.append("Type")
+                                        else:
+                                            failed_to_update_fields.append("Type")
                                     else:
                                         return "The request has unfulfilled fields", 401
 
                                 if "name" in fields:
                                     if self.__is_empty_or_none(fields["name"]) is False:
-                                        self.name = fields["name"]
+                                        temp = device
+                                        temp["name"] = fields["name"]
+                                        uuid_field = ";".join("{key}:{value}".format(key=key, value=value) for key, value in temp.items())
+                                        if LIBDEVICE.is_exists_uuid(LIBDEVICE.uuid(uuid_field)) is False:
+                                            self.name = fields["name"]
+                                            set = {
+                                                "name": "name",
+                                                "value": self.name,
+                                                "skip": False
+                                            }
+                                            LIBDEVICE.update_device(self.key, set)
+                                            updated_fields.append("Name")
+                                        else:
+                                            failed_to_update_fields.append("Name")
+                                    else:
+                                        return "The request has unfulfilled fields", 401
+                            
+                                if "is_enabled" in fields:
+                                    if self.__is_empty_or_none(fields["is_enabled"]) is False:
+                                        self.is_enabled = fields["is_enabled"]
                                         set = {
-                                            "name": "name",
-                                            "value": self.name,
+                                            "name": "is_enabled",
+                                            "value": self.is_enabled,
                                             "skip": False
                                         }
                                         LIBDEVICE.update_device(self.key, set)
+                                        updated_fields.append("Status")
                                     else:
                                         return "The request has unfulfilled fields", 401
 
@@ -375,7 +438,16 @@ class Device(Resource):
                             else:
                                 return "Device is not updated", 400
                             
-                            return "Device is updated", 200
+                            if len(updated_fields) == 0:
+                                if len(failed_to_update_fields) == 1:
+                                    return ((', '.join('{}'.format(key) for key in failed_to_update_fields)) + " is not being updated"), 400
+                                else:
+                                    return ((', '.join('{}'.format(key) for key in failed_to_update_fields)) + " are not being updated"), 400
+                            else:
+                                if len(updated_fields) == 1:
+                                    return ((', '.join('{}'.format(key) for key in updated_fields)) + " has been updated"), 200
+                                else:
+                                    return ((', '.join('{}'.format(key) for key in updated_fields)) + " have been updated"), 200
                         else:
                             return "Device not found", 404
                     else:

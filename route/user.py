@@ -314,32 +314,33 @@ class User(Resource):
                     fields = json.loads(args["fields"].replace("'", '"'))
                     updated_fields = []
                     failed_to_update_fields = []
-                    
-                    if LIBUSER.is_admin(self.uuid):
-                        if "uuid" in fields:
-                            if self.__is_empty_or_none(fields["uuid"]) is False and LIBUSER.is_exists(fields["uuid"]) is True:
-                                self.uuid = fields["uuid"]
-                            else:
-                                return "Invalid UUID", 400
-                            
-                        if "type" in fields:
-                            if self.__is_empty_or_none(fields["type"]) is False:
-                                set = {
-                                    "name": "type",
-                                    "value": fields["type"],
-                                    "skip": False
-                                }
-                                is_updated = LIBUSER.update_user(self.uuid, set)
 
-                                if is_updated is True:
-                                    updated_fields.append("Type")
+                    if "uuid" in fields or "type" in fields:
+                        if LIBUSER.is_admin(self.uuid):
+                            if "uuid" in fields:
+                                if self.__is_empty_or_none(fields["uuid"]) is False and LIBUSER.is_exists(fields["uuid"]) is True:
+                                    self.uuid = fields["uuid"]
                                 else:
-                                    failed_to_update_fields.append("Type")
-                                    
-                            else:
-                                return "The request has unfulfilled fields", 400
-                    else:
-                        return "You don't have this permission", 403
+                                    return "Invalid UUID", 400
+                                
+                            if "type" in fields:
+                                if self.__is_empty_or_none(fields["type"]) is False:
+                                    set = {
+                                        "name": "type",
+                                        "value": fields["type"],
+                                        "skip": False
+                                    }
+                                    is_updated = LIBUSER.update_user(self.uuid, set)
+
+                                    if is_updated is True:
+                                        updated_fields.append("Type")
+                                    else:
+                                        failed_to_update_fields.append("Type")
+                                        
+                                else:
+                                    return "The request has unfulfilled fields", 400
+                        else:
+                            return "You don't have this permission", 403
 
                     if "username" in fields:
                         if self.__is_empty_or_none(fields["username"]) is False:

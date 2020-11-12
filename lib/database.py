@@ -26,7 +26,8 @@ TABLES = {
             "name": "text",
             "uuid": "text",
             "key": "text",
-            "pulse": "numeric"
+            "pulse": "numeric",
+            "is_enabled": "boolean" # 0 => false, 1 => true
         },
         "verifications": [
             "uuid"

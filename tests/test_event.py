@@ -54,7 +54,6 @@ users = {
 
 uuids = {
     "who1": "",
-    "who2": "",
     "what.type": "",
     "what.data": "",
     "when": "",
@@ -88,6 +87,9 @@ DEVICES_UUIDS = [
     str(uuid.UUID(hashlib.md5(str(";".join("{key}:{value}".format(key=key, value=value) for key, value in DEVICES[0].items())).encode('utf-8')).hexdigest())),
     str(uuid.UUID(hashlib.md5(str(";".join("{key}:{value}".format(key=key, value=value) for key, value in DEVICES[1].items())).encode('utf-8')).hexdigest()))
 ]
+
+DEVICES[0]["is_enabled"] = 1
+DEVICES[1]["is_enabled"] = 0
 
 PRE_EVENTS = []
 
@@ -317,7 +319,7 @@ def test_add(app, client):
     expected = "Duplicated event"
     assert expected == json.loads(res.get_data(as_text=True))["message"]
 
-    # new event with different device
+    # new event with disabled device
     res = client.post('/event/add', data=dict(
         who=keys["test1"],
         what="""{
@@ -326,19 +328,11 @@ def test_add(app, client):
         }""",
         when=1501240210993
     ))
-    assert res.status_code == 200
+    assert res.status_code == 403
     # test status_code
-    event = {
-        "device": keys["test1"],
-        "type": "temperature",
-        "details": "30",
-        "time": 1501240210993
-    }
-    uuid_field = ";".join("{key}:{value}".format(key=key, value=value) for key, value in event.items())
-    expected = str(uuid.UUID(hashlib.md5(str(uuid_field).encode('utf-8')).hexdigest()))
+    expected = "You are not allowed to do so at this time"
     actual = json.loads(res.get_data(as_text=True))
     assert expected == actual["message"]
-    uuids["who2"] = actual["message"]
 
     # new event with different what.type <- error case
     res = client.post('/event/add', data=dict(
@@ -516,28 +510,6 @@ def test_event_key(app, client):
         hidden=0
     )
     event["device"]["uuid"] = DEVICES_UUIDS[0]
-    event["device"]["key"] = ""
-    event["device"]["pulse"] = -1
-    actual = json.loads(res.get_data(as_text=True))
-    assert event == actual["message"]
-
-    # event with different device
-    res = client.get('/event/{}'.format(uuids["who2"]), headers={
-        "X-OTP": admins["admin"]["otp"],
-        "X-UUID": admins["admin"]["uuid"]
-    })
-    assert res.status_code == 200
-    # test message
-    event = dict(
-        uuid=uuids["who2"],
-        device=DEVICES[1],
-        time=1501240210993,
-        type="temperature",
-        details="30",
-        hidden=0
-    )
-    event["device"]["uuid"] = DEVICES_UUIDS[1]
-    event["device"]["key"] = ""
     event["device"]["pulse"] = -1
     actual = json.loads(res.get_data(as_text=True))
     assert event == actual["message"]
@@ -558,7 +530,6 @@ def test_event_key(app, client):
         hidden=0
     )
     event["device"]["uuid"] = DEVICES_UUIDS[0]
-    event["device"]["key"] = ""
     event["device"]["pulse"] = -1
     actual = json.loads(res.get_data(as_text=True))
     assert event == actual["message"]
@@ -579,7 +550,6 @@ def test_event_key(app, client):
         hidden=0
     )
     event["device"]["uuid"] = DEVICES_UUIDS[0]
-    event["device"]["key"] = ""
     event["device"]["pulse"] = -1
     actual = json.loads(res.get_data(as_text=True))
     assert event == actual["message"]
@@ -600,7 +570,6 @@ def test_event_key(app, client):
         hidden=0
     )
     event["device"]["uuid"] = DEVICES_UUIDS[0]
-    event["device"]["key"] = ""
     event["device"]["pulse"] = -1
     actual = json.loads(res.get_data(as_text=True))
     assert event == actual["message"]
@@ -787,51 +756,6 @@ def test_event_update(app, client):
         hidden=1
     )
     event["device"]["uuid"] = DEVICES_UUIDS[0]
-    event["device"]["key"] = ""
-    event["device"]["pulse"] = -1
-    actual = json.loads(res.get_data(as_text=True))
-    assert event == actual["message"]
-
-    # sufficient who2 case
-    fields = dict(
-        what="10"
-    )
-    res = client.put('/event/update', data=dict(
-        which=uuids["who2"],
-        fields=str(json.dumps(fields))
-    ), headers={
-        "X-OTP": admins["admin"]["otp"],
-        "X-UUID": admins["admin"]["uuid"]
-    })
-    assert res.status_code == 200
-    # test message
-    event = {
-        "device": keys["test1"],
-        "type": "temperature",
-        "details": "10",
-        "time": 1501240210993
-    }
-    uuid_field = ";".join("{key}:{value}".format(key=key, value=value) for key, value in event.items())
-    expected = str(uuid.UUID(hashlib.md5(str(uuid_field).encode('utf-8')).hexdigest()))
-    actual = json.loads(res.get_data(as_text=True))
-    assert expected == actual["message"]
-    uuids["who2"] = actual["message"]
-    res = client.get('/event/{}'.format(uuids["who2"]), headers={
-        "X-UUID": admins["admin"]["uuid"],
-        "X-OTP": admins["admin"]["otp"]
-    })
-    assert res.status_code == 200
-    # test message
-    event = dict(
-        uuid=uuids["who2"],
-        device=DEVICES[1],
-        time=1501240210993,
-        type="temperature",
-        details="10",
-        hidden=0
-    )
-    event["device"]["uuid"] = DEVICES_UUIDS[1]
-    event["device"]["key"] = ""
     event["device"]["pulse"] = -1
     actual = json.loads(res.get_data(as_text=True))
     assert event == actual["message"]
@@ -876,7 +800,6 @@ def test_event_update(app, client):
         hidden=0
     )
     event["device"]["uuid"] = DEVICES_UUIDS[0]
-    event["device"]["key"] = ""
     event["device"]["pulse"] = -1
     actual = json.loads(res.get_data(as_text=True))
     assert event == actual["message"]
@@ -921,7 +844,6 @@ def test_event_update(app, client):
         hidden=1
     )
     event["device"]["uuid"] = DEVICES_UUIDS[0]
-    event["device"]["key"] = ""
     event["device"]["pulse"] = -1
     actual = json.loads(res.get_data(as_text=True))
     assert event == actual["message"]
@@ -982,18 +904,6 @@ def test_event_update(app, client):
 def test_delete(app, client):
     res = client.delete('/event/delete', data=dict(
         which=uuids["who1"]
-    ), headers={
-        "X-OTP": admins["admin"]["otp"],
-        "X-UUID": admins["admin"]["uuid"]
-    })
-    assert res.status_code == 200
-    # test status_code
-    expected = "Event is deleted"
-    actual = json.loads(res.get_data(as_text=True))
-    assert expected == actual["message"]
-
-    res = client.delete('/event/delete', data=dict(
-        which=uuids["who2"]
     ), headers={
         "X-OTP": admins["admin"]["otp"],
         "X-UUID": admins["admin"]["uuid"]

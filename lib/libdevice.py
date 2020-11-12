@@ -33,6 +33,57 @@ class LibDevice:
         else:
             return True
 
+    def is_exists_uuid(self, uuid):
+        """
+
+            Check if a device exists in the database
+
+            Args:
+                self: access global variables
+                uuid: device uuid
+            
+            Returns: 
+                bool: True if exists, False otherwise
+
+        """
+
+        where = {
+            "name": "uuid",
+            "value": uuid
+        }
+
+        data = Database("devices").get(where=where)
+
+        # only one entity should be returnd
+        if len(data) == 0:
+            return False
+        else:
+            return True
+
+    def is_enabled(self, key):
+        """
+
+            Check if a device is enabled
+
+            Args:
+                self: access global variables
+                key: device key
+            
+            Returns: 
+                bool: True if enabled, False otherwise
+
+        """
+
+        data = self.details(key)
+        
+        if data is None:
+            return False
+        else:
+            if data["is_enabled"] == 1:
+                return True
+            else:
+                return False
+
     def details(self, key):
         """
 
@@ -112,12 +163,15 @@ class LibDevice:
                 string: device key if successful, None otherwise
 
         """
+        is_enabled = details["is_enabled"]
+        details.pop("is_enabled")
         uuid_field = ";".join("{key}:{value}".format(key=key, value=value) for key, value in details.items())
         device_uuid = self.uuid(uuid_field)
         device_key = Key().generate()
         details["uuid"] = device_uuid
         details["key"] = device_key
         details["pulse"] = -1
+        details["is_enabled"] = is_enabled
 
         is_inserted = Database("devices").insert(data=details)
 

@@ -11,7 +11,7 @@ import pytest
 from lib.email import Email
 from lib.key import Key
 
-@pytest.mark.skipif(reason="Prevent spamming")
+@pytest.mark.skip(reason="Prevent spamming")
 def test_email_full(app, client):
     email = Email(email="hx-spam@outlook.com")
     event = {
