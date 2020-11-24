@@ -34,24 +34,13 @@ class LibUser:
                 "username": key,
                 "password": Key().md5(value)
             }
-            
-            user_uuid = self.uuid(";".join("{field_key}:{field_value}".format(field_key=field_key, field_value=field_value) for field_key, field_value in user.items()))
-            item_struct = {
-                "uuid": user_uuid,
-                "username": user["username"],
-                "password": user["password"],
-                "email": "",
-                "type": "admin",
-                "otp": "",
-                "otp_time": 0,
-                "last_login": -1
-            }
-            is_inserted = Database("users").insert(data=item_struct)
+
+            is_inserted = self.add_user(user, "admin")
 
             if is_inserted is True:
-                print("User {user} {uuid} is initialized".format(user=key, uuid=user_uuid))
+                print("User {user} is initialized".format(user=key))
             else:
-                print("User {user} {uuid} already exists or failed to initialize".format(user=key, uuid=user_uuid))
+                print("User {user} already exists or failed to initialize".format(user=key))
 
     def add_user(self, details, user_type):
         """
@@ -90,8 +79,7 @@ class LibUser:
 
             Args:
                 self: accessing global parameters
-                details: user details
-                user_type: user type
+                uuid: user uuid
 
             Returns:
                 bool: True if successful, False otherwise
@@ -309,7 +297,7 @@ class LibUser:
 
             Args:
                 self: access global variables
-                uuid: uuid
+                uuid: user uuid
             
             Returns:
                 boolean: True if a user is admin, False otherwise
