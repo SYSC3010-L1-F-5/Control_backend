@@ -39,6 +39,78 @@ services:
     restart: always
 ```
 
+## Config
+
+### Users
+
+A block that adds **admin** users into the system.
+
+Formate: `<username>:<password>`
+
+``` yaml
+users:
+    admin: "password"
+    root: "root"
+```
+
+### database
+
+A block that configs the database settings. Currently, only the `name` is working.
+
+``` yaml
+database:
+    name: "test.db" # the name of the database
+```
+
+### plugins
+
+A block that configs plugins.
+
+``` yaml
+plugins:
+    SenseHAT: true # true || false, enable or disable
+    alert: 
+        enable: true # true || false, enable or disable
+        type:
+            motion_detected: 
+                file: "alert.mp3" # the sound used to be played when this event happened
+                times: -1 # how many times should the sound be played, -1 means infinity
+            temperature: 
+                file: "notification.mp3" # the sound used to be played when this event happened
+                times: 1 # how many times should the sound be played, -1 means infinity
+            humidity: 
+                file: "notification.mp3" # the sound used to be played when this event happened
+                times: 1 # how many times should the sound be played, -1 means infinity
+            pressure: 
+                file: "notification.mp3" # the sound used to be played when this event happened
+                times: 1 # how many times should the sound be played, -1 means infinity
+```
+
+### threshold
+
+A block that configs the thresholds to trigger plugins
+
+``` yaml
+threshold:
+    temperature: 
+        upper: 30 # integer, plugins will be triggered when the value is over this limit
+        lower: 20 # integer, plugins will be triggered when the value is below this limit
+    humidity: 
+        upper: 70 # integer, plugins will be triggered when the value is over this limit
+        lower: 20 # integer, plugins will be triggered when the value is below this limit
+    pressure: 
+        upper: 1200 # integer, plugins will be triggered when the value is over this limit
+        lower: 800 # integer, plugins will be triggered when the value is below this limit
+```
+
+### email
+
+A block that configs the thresholds to trigger plugins
+
+``` yaml
+email: "ui@shigure.ch" # the email address to receive event notifications
+```
+
 ## Test
 
 Requirements:
