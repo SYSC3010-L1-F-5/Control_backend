@@ -7,7 +7,21 @@ database:
 
 plugins:
     SenseHAT: true
-    alarm: false
+    alert: 
+        enable: true
+        type:
+            motion_detected: 
+                file: "alert.mp3"
+                times: -1
+            temperature: 
+                file: "notification.mp3"
+                times: 1
+            humidity: 
+                file: "notification.mp3"
+                times: 1
+            pressure: 
+                file: "notification.mp3"
+                times: 1
 
 # Below are temporary settings
 # Future implementations are not in SYSC 3010 project scope

@@ -13,9 +13,9 @@ if CONFIG["plugins"]["SenseHAT"] is True:
     from plugins.sensehat import SenseHAT
     plugin_list.append(SenseHAT(CONFIG))
 
-if CONFIG["plugins"]["alarm"] is True:
-    from plugins.alarm import Alarm
-    plugin_list.append(Alarm(CONFIG))
+if CONFIG["plugins"]["alert"]["enable"] is True:
+    from plugins.alert import Alert
+    plugin_list.append(Alert(CONFIG))
 
 class Plugin:
 
