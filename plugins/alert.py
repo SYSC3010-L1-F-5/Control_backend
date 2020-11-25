@@ -2,6 +2,9 @@
 
     Alert system
 
+    alert.mp3: acquire from https://www.youtube.com/watch?v=BQI1Fvp6rBw
+    notification.mp3: acquire from https://www.youtube.com/watch?v=qtkbydBmz0o
+
     Author: Haoyu Xu
 
 """
