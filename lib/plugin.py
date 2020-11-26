@@ -10,12 +10,18 @@ CONFIG = LibConfig().fetch()
 plugin_list = []
 
 if CONFIG["plugins"]["SenseHAT"] is True:
-    from plugins.sensehat import SenseHAT
-    plugin_list.append(SenseHAT(CONFIG))
+    try:
+        from plugins.sensehat import SenseHAT
+        plugin_list.append(SenseHAT(CONFIG))
+    except Exception as e:
+        print(e)
 
 if CONFIG["plugins"]["alert"]["enable"] is True:
-    from plugins.alert import Alert
-    plugin_list.append(Alert(CONFIG))
+    try:
+        from plugins.alert import Alert
+        plugin_list.append(Alert(CONFIG))
+    except Exception as e:
+        print(e)
 
 class Plugin:
 
