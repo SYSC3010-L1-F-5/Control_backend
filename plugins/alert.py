@@ -43,6 +43,8 @@ class Alert:
         if mixer.music.get_busy() == 0:
             mixer.music.load(os.path.join(self.path, self.sound[type]["file"]))
             mixer.music.play(loops=self.sound[type]["times"])
+        else:
+            mixer.music.queue(os.path.join(self.path, self.sound[type]["file"]))
 
     def off(self, event):
         """
