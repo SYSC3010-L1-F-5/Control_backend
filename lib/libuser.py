@@ -10,7 +10,7 @@ class LibUser:
     def __init__(self):
         """
         
-            self.database: connect to users table in the databse
+            self.database: connect to users table in the database
 
         """
         self.database = Database("users")
@@ -22,9 +22,6 @@ class LibUser:
 
             Args:
                 self: accessing global parameters
-
-            Returns:
-                bool: True if successful, False otherwise
 
         """
         users = CONFIG["users"]
@@ -261,7 +258,7 @@ class LibUser:
                 set: field to be updated
 
             Returns:
-                boolean: True if successful, Falase otherwise
+                boolean: True if successful, False otherwise
 
         """
         is_exists = self.is_exists(uuid)
